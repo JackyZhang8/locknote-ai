@@ -1,8 +1,10 @@
 # Locknote AI
 
+![Locknote AI 界面：笔记本、标签、笔记列表与 Markdown 预览](screenshoot/screen-ui.png)
+
 **本地优先的 Markdown 笔记应用，让你和 AI 在同一个知识库中协作。**
 
-简体中文 · [English](README.en.md)
+简体中文 · [English](README.en.md) · [下载 / Releases](https://github.com/JackyZhang8/locknote-ai/releases) · [MIT 许可证](LICENSE)
 
 Locknote AI 将桌面工作区、浏览器界面和 MCP 服务集成到一个应用。你可以编辑笔记，也可以让 AI 读取、整理和更新文档。数据保存在本机 SQLite 中，无需云端账号。
 
@@ -21,7 +23,9 @@ Locknote AI 将桌面工作区、浏览器界面和 MCP 服务集成到一个应
 
 ## 快速开始
 
-需要 Go 1.24+、Node.js 20+、Wails v2.12.0 以及平台对应的桌面编译环境。dev.sh 面向 macOS。
+从 [Releases](https://github.com/JackyZhang8/locknote-ai/releases) 获取对应平台的安装包；如需从源码运行，请按以下步骤准备环境。
+
+源码构建需要 Go 1.24+、Node.js 20+、Wails v2.12.0 以及[平台对应的桌面编译环境](https://wails.io/docs/gettingstarted/installation)。`dev.sh` 面向 macOS。
 
 ~~~bash
 go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
@@ -123,7 +127,7 @@ go vet ./...
 wails build -skipbindings
 ~~~
 
-前端采用与 locknote-client 一致的 React 18、TypeScript 5、Vite 5 和 Tailwind CSS 3 工具链，保留原有配色、布局与业务控制逻辑。开发时 Vite 提供热更新；正式构建将 frontend/dist/ 通过 go:embed 嵌入 Go 可执行文件，因此首次运行 Go 测试或构建前需先构建前端。浏览器使用 SSE，桌面使用 Wails 事件接收变更。
+前端采用 React 18、TypeScript 5、Vite 5 和 Tailwind CSS 3，后端使用 Go、Wails 和 SQLite。开发时 Vite 提供热更新；正式构建将 frontend/dist/ 通过 go:embed 嵌入 Go 可执行文件，因此首次运行 Go 测试或构建前需先构建前端。浏览器使用 SSE，桌面使用 Wails 事件接收变更。
 
 | 路径 | 职责 |
 | --- | --- |
@@ -144,4 +148,12 @@ wails build -skipbindings
 
 默认监听回环地址。MCP HTTP 校验 Bearer 令牌；监听非回环地址时 REST API 也要求令牌。请勿将明文 HTTP 服务直接暴露到公网，勿将数据库、令牌或私人笔记提交到仓库。
 
+## 版本维护
+
 版本号统一在根目录 `VERSION` 中维护。只修改该文件；前端构建会自动同步 `wails.json` 中的打包版本，界面、CLI 和 MCP 使用同一版本。手动运行 `wails build` 前先执行 `npm --prefix frontend run build`，发布标签必须与 `VERSION` 一致。
+
+## 许可证
+
+本项目采用 [MIT License](LICENSE)，允许使用、修改和分发，包括商业用途；分发时须保留版权和许可声明。软件按原样提供，不附带担保。
+
+第三方依赖遵循各自的许可证。随应用分发的 Mermaid 及其依赖声明见 [LICENSES.txt](frontend/public/vendor/mermaid/LICENSES.txt)。

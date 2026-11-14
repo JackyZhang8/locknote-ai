@@ -1,8 +1,10 @@
 # Locknote AI
 
+![Locknote AI workspace with notebooks, tags, a note list, and Markdown preview](screenshoot/screen-ui.png)
+
 **A local-first Markdown notes app where you and AI share one knowledge base.**
 
-[简体中文](README.md) · English
+[简体中文](README.md) · English · [Downloads / Releases](https://github.com/JackyZhang8/locknote-ai/releases) · [MIT License](LICENSE)
 
 Locknote AI combines a desktop workspace, browser interface, and MCP server in one application. Edit notes yourself or let AI read, organize, and update documents. Data stays in a local SQLite database; no cloud account is required.
 
@@ -21,7 +23,9 @@ Locknote AI combines a desktop workspace, browser interface, and MCP server in o
 
 ## Quick Start
 
-Install Go 1.24+, Node.js 20+, Wails v2.12.0, and the desktop build prerequisites for your platform. The dev.sh script targets macOS.
+Get a package for your platform from [Releases](https://github.com/JackyZhang8/locknote-ai/releases). To run from source, prepare the environment below.
+
+Building from source requires Go 1.24+, Node.js 20+, Wails v2.12.0, and the [desktop build prerequisites for your platform](https://wails.io/docs/gettingstarted/installation). The `dev.sh` script targets macOS.
 
 ~~~bash
 go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
@@ -123,7 +127,7 @@ go vet ./...
 wails build -skipbindings
 ~~~
 
-The frontend uses React 18, TypeScript 5, Vite 5, and Tailwind CSS 3, matching locknote-client’s toolchain while preserving the existing colors, layout, and business controllers. Vite provides hot reload during development. Production assets under frontend/dist/ are embedded in the Go executable through go:embed, so build the frontend before the first Go test or build. Browser clients receive changes through SSE; the desktop app uses Wails events.
+The frontend uses React 18, TypeScript 5, Vite 5, and Tailwind CSS 3. The backend uses Go, Wails, and SQLite. Vite provides hot reload during development. Production assets under frontend/dist/ are embedded in the Go executable through go:embed, so build the frontend before the first Go test or build. Browser clients receive changes through SSE; the desktop app uses Wails events.
 
 | Path | Responsibility |
 | --- | --- |
@@ -144,4 +148,12 @@ Read [AGENTS.md](AGENTS.md) before contributing. Mermaid and dependency licenses
 
 The server listens on loopback by default. MCP HTTP requires a Bearer token; REST API requests also require a token when listening on a non-loopback address. Do not expose the plaintext HTTP service directly to the public internet or commit databases, tokens, or private notes to the repository.
 
+## Version Management
+
 Maintain the application version only in the root `VERSION` file. The frontend build synchronizes Wails packaging metadata; the UI, CLI, and MCP share this version. Run `npm --prefix frontend run build` before invoking `wails build` directly. Release tags must match `VERSION`.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE), allowing use, modification, and distribution, including commercial use, provided the copyright and license notices are retained. The software is provided without warranty.
+
+Third-party dependencies retain their own licenses. Notices for the bundled Mermaid distribution and its dependencies are included in [LICENSES.txt](frontend/public/vendor/mermaid/LICENSES.txt).
