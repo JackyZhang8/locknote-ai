@@ -15,7 +15,6 @@
 .workbuddy/
 docs/plans/
 outputs/
-build/
 .workbuddy-ai/memory/
 
 # React/Vite build and dependencies
