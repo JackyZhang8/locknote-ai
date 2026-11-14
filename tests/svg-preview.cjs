@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const window={LNSVG:{sanitize:source=>source}};
-vm.runInNewContext(fs.readFileSync('web/markdown.js','utf8'),{window});
+vm.runInNewContext(fs.readFileSync('frontend/src/runtime/markdown.js','utf8'),{window});
 test('SVG blocks get a safe image preview and source disclosure',()=>{
  const svg='<svg xmlns="http://www.w3.org/2000/svg"><rect width="20" height="20"/></svg>';
  const fenced=['```svg',svg,'```'].join(String.fromCharCode(10));

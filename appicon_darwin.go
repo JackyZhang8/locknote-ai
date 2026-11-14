@@ -4,7 +4,7 @@ package main
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework AppKit
+#cgo LDFLAGS: -framework AppKit -framework UniformTypeIdentifiers
 #include <stdlib.h>
 #include <AppKit/AppKit.h>
 

@@ -27,10 +27,13 @@ import (
 	"locknote-mcp/internal/store"
 )
 
-//go:embed all:web
+//go:embed all:frontend/dist
 var webAssets embed.FS
 
-const version = "1.0.0"
+//go:embed VERSION
+var versionFile string
+
+var version = strings.TrimSpace(versionFile)
 
 func main() {
 	log.SetFlags(log.Ltime)
@@ -121,7 +124,7 @@ func runServe(args []string) {
 	baseURL := publicURL(*addr)
 	mcpServer := mcp.NewServer(st, version, baseURL)
 
-	webFS, err := fs.Sub(webAssets, "web")
+	webFS, err := fs.Sub(webAssets, "frontend/dist")
 	if err != nil {
 		fatal("加载界面资源失败: %v", err)
 	}

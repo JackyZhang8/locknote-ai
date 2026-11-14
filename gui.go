@@ -69,7 +69,7 @@ func runGUI(args []string) {
 	baseURL := publicURL(*addr)
 	mcpServer := mcp.NewServer(st, version, baseURL)
 
-	webFS, err := fs.Sub(webAssets, "web")
+	webFS, err := fs.Sub(webAssets, "frontend/dist")
 	if err != nil {
 		fatal("加载界面资源失败: %v", err)
 	}

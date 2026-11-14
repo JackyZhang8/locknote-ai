@@ -498,6 +498,10 @@
     return text.replace(phraseRe, function (m) { return DICT[m]; });
   }
 
+  function renderHTML(element, markup) {
+    window.LNReactUI.renderRegion(element, markup);
+  }
+
   function apply(root) {
     var scope = root || document;
     Array.prototype.forEach.call(scope.querySelectorAll('[data-i18n]'), function (el) {
@@ -511,7 +515,7 @@
     });
     Array.prototype.forEach.call(scope.querySelectorAll('[data-i18n-html]'), function (el) {
       var block = HTML[el.getAttribute('data-i18n-html')];
-      if (block) el.innerHTML = block[lang] || block['zh-CN'];
+      if (block) renderHTML(el, block[lang] || block['zh-CN']);
     });
     document.title = tr('LockNote.ai · AI 原生笔记库');
   }

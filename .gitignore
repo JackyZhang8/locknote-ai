@@ -17,3 +17,13 @@ docs/plans/
 outputs/
 build/
 .workbuddy-ai/memory/
+
+# React/Vite build and dependencies
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.test-dist/
+/frontend/*.tsbuildinfo
+/frontend/vite.config.js
+/frontend/vite.config.d.ts
+/frontend/wailsjs/
+/frontend/package.json.md5

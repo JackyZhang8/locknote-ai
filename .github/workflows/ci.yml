@@ -25,9 +25,15 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Build frontend assets
+      - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+      - name: Frontend tests
+        working-directory: frontend
+        env:
+          TZ: Asia/Shanghai
+        run: npm test
 
       - name: Install Linux dependencies
         run: |
@@ -39,13 +45,3 @@ jobs:
 
       - name: Go tests
         run: go test ./internal/... .
-
-      - name: TypeScript check
-        working-directory: frontend
-        run: npx tsc --noEmit
-
-      - name: Frontend tests
-        working-directory: frontend
-        env:
-          TZ: Asia/Shanghai
-        run: npm test

@@ -1,7 +1,7 @@
 // Model/window benchmark; does not measure browser layout or database queries.
 // Run: node tools/virtual_list_bench.cjs
 const { performance } = require('node:perf_hooks');
-const { createModel } = require('../web/list-performance.js');
+const { createModel } = require('../tests/runtime-helper.cjs');
 for (const count of [1000,10000,30000]) {
   const notes=Array.from({length:count},(_,i)=>({id:String(i),pinned:i<3}));
   const start=performance.now();

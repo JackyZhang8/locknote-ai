@@ -21,7 +21,7 @@ Locknote AI combines a desktop workspace, browser interface, and MCP server in o
 
 ## Quick Start
 
-Install Go 1.24+, Wails v2.12.0, and the desktop build prerequisites for your platform. The dev.sh script targets macOS.
+Install Go 1.24+, Node.js 20+, Wails v2.12.0, and the desktop build prerequisites for your platform. The dev.sh script targets macOS.
 
 ~~~bash
 go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
@@ -44,6 +44,8 @@ LOCKNOTE_MCP_ADDR=127.0.0.1:7421 ./dev.sh
 ### Build and CLI
 
 ~~~bash
+npm --prefix frontend ci          # Install locked frontend dependencies
+npm --prefix frontend run build   # Generate embedded frontend/dist/ assets
 wails build -skipbindings          # Desktop output: build/bin/
 go build -o /tmp/locknote-mcp .     # Build the executable
 /tmp/locknote-mcp serve            # HTTP/MCP server without a window
@@ -114,13 +116,14 @@ Quit the app before restoring and retain a backup of the current database. Datab
 
 ~~~bash
 ./dev.sh
+npm --prefix frontend run build
+npm --prefix frontend test
 go test ./...
 go vet ./...
-node --test tests/window-controls.cjs tests/svg-preview.cjs
 wails build -skipbindings
 ~~~
 
-The frontend uses plain JavaScript and CSS, with no npm build step. Assets under web/ are bundled through go:embed; restart the development process or rebuild after editing them. Browser clients receive changes through SSE; the desktop app uses Wails events.
+The frontend uses React 18, TypeScript 5, Vite 5, and Tailwind CSS 3, matching locknote-client’s toolchain while preserving the existing colors, layout, and business controllers. Vite provides hot reload during development. Production assets under frontend/dist/ are embedded in the Go executable through go:embed, so build the frontend before the first Go test or build. Browser clients receive changes through SSE; the desktop app uses Wails events.
 
 | Path | Responsibility |
 | --- | --- |
@@ -129,12 +132,16 @@ The frontend uses plain JavaScript and CSS, with no npm build step. Assets under
 | internal/api/ | REST, import/export, and events |
 | internal/mcp/ | MCP tools, resources, prompts, and transports |
 | internal/textutil/ | Markdown text helpers |
-| web/ | UI, diagram previews, and bundled Mermaid dependencies |
+| frontend/src/ | React UI, styles, business controllers, and diagram previews |
+| frontend/public/ | Icons and offline Mermaid dependencies |
+| frontend/dist/ | Vite output embedded by Go |
 | tests/ | Frontend regression tests |
 | build/ | Desktop resources and build output |
 
-Read [AGENTS.md](AGENTS.md) before contributing. Mermaid and dependency licenses are listed in [LICENSES.txt](web/vendor/mermaid/LICENSES.txt).
+Read [AGENTS.md](AGENTS.md) before contributing. Mermaid and dependency licenses are listed in [LICENSES.txt](frontend/public/vendor/mermaid/LICENSES.txt).
 
 ## Security Boundaries
 
 The server listens on loopback by default. MCP HTTP requires a Bearer token; REST API requests also require a token when listening on a non-loopback address. Do not expose the plaintext HTTP service directly to the public internet or commit databases, tokens, or private notes to the repository.
+
+Maintain the application version only in the root `VERSION` file. The frontend build synchronizes Wails packaging metadata; the UI, CLI, and MCP share this version. Run `npm --prefix frontend run build` before invoking `wails build` directly. Release tags must match `VERSION`.

@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {createModel, createQueue} = require('../web/list-performance.js');
+const {createModel, createQueue} = require('./runtime-helper.cjs');
 
 test('30000 notes keep the rendered window bounded at top, middle and end', () => {
   const model = createModel(Array.from({length:30000},(_,i)=>({id:String(i),pinned:i<2})));

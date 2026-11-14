@@ -2,12 +2,15 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "locknote-mcp",
   "outputfilename": "Locknote",
-  "frontend:dir": "web",
-  "frontend:install": "",
-  "frontend:build": "",
-  "frontend:dev:watcher": "",
-  "frontend:dev:serverUrl": "http://127.0.0.1:7420",
+  "frontend:dir": "frontend",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "locknote"
+  },
+  "info": {
+    "productVersion": "0.1.0"
   }
 }

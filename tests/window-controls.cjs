@@ -5,7 +5,7 @@ const fs=require('node:fs');
 test('double-click titlebar toggles native maximize only on blank titlebar',()=>{
  let listener, calls=0;
  const window={runtime:{WindowToggleMaximise(){calls++}}};
- vm.runInNewContext(fs.readFileSync('web/window-controls.js','utf8'),{window,document:{addEventListener(name,fn){assert.equal(name,'dblclick');listener=fn}}});
+ vm.runInNewContext(fs.readFileSync('frontend/src/runtime/window-controls.js','utf8'),{window,document:{addEventListener(name,fn){assert.equal(name,'dblclick');listener=fn}}});
  const target=(strip,interactive)=>({closest(selector){return selector==='.titlebar-strip'?strip:interactive}});
  listener({target:target(true,false),preventDefault(){}}); assert.equal(calls,1);
  listener({target:target(false,false),preventDefault(){}}); assert.equal(calls,1);
@@ -21,7 +21,7 @@ test('viewport resize updates visible content synchronously without an extra ani
   requestAnimationFrame(){assert.fail('resize must not wait for another frame')}
  };
  const context={window,document:{addEventListener(){}}};
- vm.runInNewContext(fs.readFileSync('web/window-controls.js','utf8'),context);
+ vm.runInNewContext(fs.readFileSync('frontend/src/runtime/window-controls.js','utf8'),context);
  assert.equal(typeof window.LNWindowControls?.observeViewport,'function');
  window.LNWindowControls.observeViewport({id:'rows'},()=>updates++);
  handlers.resize();assert.equal(updates,1);

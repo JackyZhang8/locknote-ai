@@ -7,7 +7,7 @@ test('SVG allowlist removes scripts, events, HTML, styles and external resources
  const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
  try {
   const page=await browser.newPage();
-  await page.addScriptTag({content:fs.readFileSync('web/svg.js','utf8')});
+  await page.addScriptTag({content:fs.readFileSync('frontend/src/runtime/svg.js','utf8')});
   const result=await page.evaluate(()=>window.LNSVG.sanitize('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"><script>alert(1)</script><foreignObject><div>bad</div></foreignObject><rect width="20" fill="url(#paint)" style="fill:red"/><image href="https://example.invalid/x"/><circle fill="url(https://example.invalid/x)"/></svg>'));
   assert.match(result,/<rect/);
   assert.match(result,/url(#paint)/);

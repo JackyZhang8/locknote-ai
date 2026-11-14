@@ -2,7 +2,7 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const performanceTools = require('../web/list-performance.js');
+const performanceTools = require('./runtime-helper.cjs');
 
 function appHarness() {
   const elements = new Map();
@@ -14,9 +14,10 @@ function appHarness() {
     });
     return elements.get(id);
   }
-  const window = {LNListPerformance:performanceTools,LNI18N:{tr:s=>s}};
-  let source = fs.readFileSync('web/app.js','utf8');
+  const window = {LNListPerformance:performanceTools,LNI18N:{tr:s=>s},LNReactUI:{renderRegion(el,html){el.innerHTML=html;}}};
+  let source = fs.readFileSync('frontend/src/controller.js','utf8');
   source=source.replace('  init();', '  window.testApp = {state:state, render:renderList, window:renderListWindow, model:function(){return virtualModel;}};');
+  source = source.replace('export function startWorkspace()', 'function startWorkspace()') + '; startWorkspace();';
   vm.runInNewContext(source,{window, document:{getElementById:element,activeElement:null},setTimeout,clearTimeout,console});
   return {app:window.testApp,rows:element('rows')};
 }

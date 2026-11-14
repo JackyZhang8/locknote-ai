@@ -1,5 +1,5 @@
 /* Locknote MCP — workspace app */
-(function () {
+export function startWorkspace() {
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
@@ -92,14 +92,16 @@
 
   function toast(msg, opts) {
     var el = $('toast');
-    el.innerHTML = (opts && opts.ai ? '<span class="ai-mark">' + icon('sparkles') + '</span>' : '') + '<span>' + esc(msg) + '</span>';
-    if (opts && opts.undo) {
-      var undo = document.createElement('button'); undo.textContent = tr('撤销');
-      undo.addEventListener('click', function () {
+    var canUndo = opts && opts.undo;
+    var markup = (opts && opts.ai ? '<span class="ai-mark">' + icon('sparkles') + '</span>' : '') + '<span>' + esc(msg) + '</span>';
+    if (canUndo) markup += '<button type="button" data-toast-undo>' + esc(tr('撤销')) + '</button>';
+    window.LNReactUI.renderRegion(el, markup);
+    if (canUndo) {
+      var undo = el.querySelector('[data-toast-undo]');
+      undo.onclick = function () {
         undo.disabled = true;
         Promise.all(opts.undo.map(function (id) { return api('/notes/' + id + '/restore', { method: 'POST' }); })).then(function () { el.classList.remove('show'); return refreshAll({ keepSelection: true }); }).catch(function (err) { undo.disabled = false; toast(err.message); });
-      });
-      el.appendChild(undo);
+      };
     }
     el.classList.add('show');
     clearTimeout(el._t);
@@ -123,7 +125,7 @@
     bootStep(100, tr('就绪'));
     overlay.classList.add('done');
     setTimeout(function () {
-      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      overlay.classList.add('hidden');
     }, 420);
   }
 
@@ -407,14 +409,14 @@
     $('setProtocol').textContent = sys.protocolVersion || '2025-06-18';
     $('setToolCount').textContent = (sys.tools || []).length + tr(' 个工具');
     $('trashTotal').textContent = (state.stats && state.stats.trash || 0) + tr(' 篇笔记');
-    $('settingsAbout').innerHTML = i18n.aboutHTML(sys);
+    window.LNReactUI.renderRegion($('settingsAbout'), i18n.aboutHTML(sys));
 
     var sel = $('setAiNotebook');
     var cur = state.prefs.aiNotebook || '';
     var names = state.notebooks.map(function (nb) { return nb.name; });
     if (cur && names.indexOf(cur) < 0) names.unshift(cur);
-    sel.innerHTML = '<option value="">' + tr('未指定（未分类）') + '</option>' +
-      names.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('');
+    window.LNReactUI.renderRegion(sel, '<option value="">' + tr('未指定（未分类）') + '</option>' +
+      names.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join(''));
     sel.value = cur;
   }
 
@@ -690,22 +692,21 @@
       if (tagIdx >= state.tagLimit) state.tagLimit = tagIdx + 1;
     }
 
-    $('smartNav').innerHTML =
-      navRow('all', tr('全部笔记'), icon('note'), st.notes == null ? state.total : st.notes) +
+    window.LNReactUI.renderRegion($('smartNav'), navRow('all', tr('全部笔记'), icon('note'), st.notes == null ? state.total : st.notes) +
       navRow('pinned', tr('置顶笔记'), icon('pin'), st.pinned || 0) +
       navRow('uncategorized', tr('未分类'), icon('folder'), uncat) +
-      navRow('ai', tr('AI 写入'), icon('sparkles'), st.fromAi || 0);
+      navRow('ai', tr('AI 写入'), icon('sparkles'), st.fromAi || 0));
 
     var shownFolders = state.notebooks.slice(0, state.folderLimit);
-    $('folders').innerHTML = (shownFolders.map(function (nb) {
+    window.LNReactUI.renderRegion($('folders'), (shownFolders.map(function (nb) {
       var glyph = nb.pinned ? icon('pin') : icon(nb.icon === 'inbox' ? 'folder' : 'book');
       return navRow('notebook:' + nb.id, nb.name, glyph, nb.count, '',
         'data-kind="notebook" data-ref="' + esc(nb.id) + tr('" title="右击可置顶、改名或删除"'));
     }).join('') || tr('<div class="empty" style="padding:10px 12px;text-align:left;font-size:11.5px">还没有笔记本</div>')) +
-      sidebarMore('folders', shownFolders.length, state.notebooks.length);
+      sidebarMore('folders', shownFolders.length, state.notebooks.length));
 
     var shownTags = state.tags.slice(0, state.tagLimit);
-    $('tags').innerHTML = (shownTags.map(function (t) {
+    window.LNReactUI.renderRegion($('tags'), (shownTags.map(function (t) {
       var glyph = t.pinned
         ? '<svg class="pinmark" aria-hidden="true" style="color:' + esc(t.color || '#b2a0c7') + '"><use href="#i-pin"/></svg>'
         : '<span class="dot" style="background:' + esc(t.color || '#b2a0c7') + '"></span>';
@@ -714,7 +715,7 @@
         glyph + '<span title="' + esc(t.name) + '">' + esc(clampChars(t.name, NAV_LABEL_CHARS)) +
         '</span><span class="count">' + t.count + '</span></button>';
     }).join('') || tr('<div class="empty" style="padding:10px 12px;text-align:left;font-size:11.5px">还没有标签，点 ＋ 新建一个</div>')) +
-      sidebarMore('tags', shownTags.length, state.tags.length);
+      sidebarMore('tags', shownTags.length, state.tags.length));
 
     var trashBtn = document.querySelector('[data-scope="trash"]');
     if (trashBtn) trashBtn.classList.toggle('active', state.scope === 'trash');
@@ -729,7 +730,7 @@
         return '<option value="' + esc(nb.id) + '" title="' + esc(nb.name) + '">' +
           esc(clampChars(nb.name, NAV_LABEL_CHARS)) + '</option>';
       }).join('');
-    $('batchMove').innerHTML = opts;
+    window.LNReactUI.renderRegion($('batchMove'), opts);
   }
 
   /* ---------------------------------------------------------------- list */
@@ -780,7 +781,7 @@
       else if (state.scope === 'ai') msg = tr('还没有 AI 写入的笔记<br>在 AI 客户端里让它保存一篇文档试试。');
       else if (state.scope === 'recent') msg = tr('最近 30 天还没有编辑记录');
       else msg = tr('这里还没有笔记<br>点击右上方「新建笔记」开始，或让 AI 写入。');
-      $('rows').innerHTML = '<div class="empty">' + msg + '</div>';
+      window.LNReactUI.renderRegion($('rows'), '<div class="empty">' + msg + '</div>');
       return;
     }
 
@@ -805,7 +806,7 @@
     html += '<div class="virtual-spacer" aria-hidden="true" style="height:' + view.after + 'px"></div>' + listMoreMarkup();
     var focused = document.activeElement;
     var focusedId = focused && focused.matches('.note[data-id]') ? focused.dataset.id : null;
-    rows.innerHTML = html;
+    window.LNReactUI.renderRegion(rows, html);
     rows.scrollTop = top;
     Array.prototype.forEach.call(rows.querySelectorAll('.note[data-id]'), function (row) {
       var keyNote = virtualModel.notes[keyboardIndex];
@@ -908,7 +909,7 @@
     var isAI = n.source !== 'web';
     $('docAi').classList.toggle('hidden', !isAI || state.prefs.showAiBadge === 'false');
     if (isAI) {
-      $('docAi').innerHTML = icon('sparkles') + 'AI' + (n.author ? ' · ' + esc(n.author) : '');
+      window.LNReactUI.renderRegion($('docAi'), icon('sparkles') + 'AI' + (n.author ? ' · ' + esc(n.author) : ''));
     }
 
     var readOnly = !!n.deletedAt;
@@ -931,7 +932,7 @@
     $('preview').classList.toggle('hidden', !preview);
     $('formatbar').classList.toggle('previewing', preview);
     if (preview && state.note) {
-      $('preview').innerHTML = md.render(state.note.content || '');
+      window.LNReactUI.renderRegion($('preview'), md.render(state.note.content || ''));
       window.LNDiagrams.render($('preview'));
     } else {
       // 从预览切回编辑时，输入框刚恢复可见，需要按真实宽度重新计算高度。
@@ -1000,11 +1001,11 @@
     $('noteTagControl').classList.toggle('hidden', readOnly);
     if (readOnly) closeTagPicker();
     $('addNoteTag').disabled = savingNoteTags;
-    $('docTags').innerHTML = (note.tags || []).map(function (name) {
+    window.LNReactUI.renderRegion($('docTags'), (note.tags || []).map(function (name) {
       return '<span class="tag"># ' + esc(name) + (readOnly ? '' :
         '<button type="button" data-remove-note-tag="' + esc(name) + '" aria-label="' + esc(tr('移除标签') + ' ' + name) + '"' +
         (savingNoteTags ? ' disabled' : '') + '>×</button>') + '</span>';
-    }).join('');
+    }).join(''));
     renderTagOptions();
   }
 
@@ -1022,7 +1023,7 @@
     });
     if (query && !exact) options.push('<button type="button" data-toggle-note-tag="' + esc(query) + '"' +
       (savingNoteTags ? ' disabled' : '') + '>' + esc(tr('创建标签：') + query) + '</button>');
-    $('noteTagOptions').innerHTML = options.join('') || '<span class="note-tag-hint">' + esc(tr('暂无标签，输入名称即可创建。')) + '</span>';
+    window.LNReactUI.renderRegion($('noteTagOptions'), options.join('') || '<span class="note-tag-hint">' + esc(tr('暂无标签，输入名称即可创建。')) + '</span>');
   }
 
   function toggleNoteTag(name) {
@@ -1231,9 +1232,9 @@
   function renderDrawerContent() {
     var sys = state.system;
     if (!sys) return;
-    $('endpointBox').innerHTML = esc(sys.mcpUrl) + tr('<button class="copy" data-copy="endpoint">复制</button>');
+    window.LNReactUI.renderRegion($('endpointBox'), esc(sys.mcpUrl) + tr('<button class="copy" data-copy="endpoint">复制</button>'));
     var token = sys.defaultToken || tr('(未生成)');
-    $('tokenBox').innerHTML = esc(token) + tr('<button class="copy" data-copy="token">复制</button>');
+    window.LNReactUI.renderRegion($('tokenBox'), esc(token) + tr('<button class="copy" data-copy="token">复制</button>'));
     renderClientBox();
     renderTools();
   }
@@ -1281,7 +1282,7 @@
 
   function renderClientBox() {
     var s = clientSnippet();
-    $('clientBox').innerHTML = esc(s.text) + tr('<button class="copy" data-copy="client">复制</button>');
+    window.LNReactUI.renderRegion($('clientBox'), esc(s.text) + tr('<button class="copy" data-copy="client">复制</button>'));
     $('clientHint').textContent = s.hint;
   }
 
@@ -1293,32 +1294,32 @@
       return en ? (obj[field + 'En'] || obj[field] || '') : (obj[field] || '');
     };
     $('toolCount').textContent = sys.tools.length + tr(' 个工具');
-    $('toolList').innerHTML = sys.tools.map(function (t) {
+    window.LNReactUI.renderRegion($('toolList'), sys.tools.map(function (t) {
       return '<div class="tool-item"><div class="name">' + esc(t.name) +
         '<span class="tool-title">' + esc(text(t, 'title')) + '</span>' +
         (t.readOnly ? tr('<span class="ro">只读</span>') : '') + '</div>' +
         '<div class="desc">' + esc(text(t, 'description')) + '</div></div>';
-    }).join('');
-    $('resourceList').innerHTML = (sys.resources || []).map(function (r) {
+    }).join(''));
+    window.LNReactUI.renderRegion($('resourceList'), (sys.resources || []).map(function (r) {
       return '<div class="tool-item"><div class="name">' + esc(r.uriTemplate) + '</div>' +
         '<div class="desc">' + esc(text(r, 'description')) + '</div></div>';
-    }).join('');
-    $('promptList').innerHTML = (sys.prompts || []).map(function (p) {
+    }).join(''));
+    window.LNReactUI.renderRegion($('promptList'), (sys.prompts || []).map(function (p) {
       return '<div class="tool-item"><div class="name">' + esc(p.name) +
         '<span class="tool-title">' + esc(text(p, 'title')) + '</span></div>' +
         '<div class="desc">' + esc(text(p, 'description')) + '</div></div>';
-    }).join('');
+    }).join(''));
   }
 
   function loadActivity() {
     api('/activity?limit=40').then(function (res) {
       var items = res.activity || [];
-      $('activityList').innerHTML = items.length ? items.map(function (a) {
+      window.LNReactUI.renderRegion($('activityList'), items.length ? items.map(function (a) {
         var isWeb = a.actor === 'web';
         return '<div class="activity-item"><span class="who ' + (isWeb ? 'web' : '') + '">' + esc(isWeb ? tr('网页') : a.actor) + '</span>' +
           '<span class="txt">' + activityText(a) + '</span>' +
           '<time>' + esc(dateLabel(a.createdAt)) + '</time></div>';
-      }).join('') : tr('<div class="empty" style="padding:16px 0">还没有活动记录</div>');
+      }).join('') : tr('<div class="empty" style="padding:16px 0">还没有活动记录</div>'));
     }).catch(function () {});
   }
 
@@ -1357,9 +1358,9 @@
     $('formInput').placeholder = opts.placeholder || '';
     if (mode === 'select') {
       $('formSelectLabel').textContent = opts.label || '';
-      $('formSelect').innerHTML = (opts.options || []).map(function (o) {
+      window.LNReactUI.renderRegion($('formSelect'), (opts.options || []).map(function (o) {
         return '<option value="' + esc(o.value) + '">' + esc(o.label) + '</option>';
-      }).join('');
+      }).join(''));
       $('formSelect').value = opts.value || '';
     }
     $('formConfirm').textContent = opts.confirmText || tr('确定');
@@ -1407,12 +1408,12 @@
     if (typeof x === 'number') ctxPoint = { x: x, y: y };
     ctxItems = items;
     $('ctxHead').textContent = head || '';
-    $('ctxItems').innerHTML = items.map(function (it, i) {
+    window.LNReactUI.renderRegion($('ctxItems'), items.map(function (it, i) {
       if (it.sep) return '<div class="sep"></div>';
       return '<button type="button" role="menuitem" data-cmi="' + i + '" class="' +
         (it.danger ? 'danger ' : '') + (it.back ? 'back ' : '') + '">' +
         (it.icon ? icon(it.icon) : '') + '<span>' + esc(it.label) + '</span></button>';
-    }).join('');
+    }).join(''));
     var m = $('ctxMenu');
     m.classList.remove('hidden');
     var r = m.getBoundingClientRect();
@@ -2174,7 +2175,7 @@
 
   function showAbout() {
     $('dialogTitle').textContent = tr('关于 LockNote.ai');
-    $('dialogBody').innerHTML = i18n.aboutHTML(state.system || {});
+    window.LNReactUI.renderRegion($('dialogBody'), i18n.aboutHTML(state.system || {}));
     $('dialogOverlay').classList.add('show');
   }
   function closeDialog() { $('dialogOverlay').classList.remove('show'); }
@@ -2192,11 +2193,11 @@
         var removed = oldLines.slice(prefix, oldLines.length-suffix);
         var added = newLines.slice(prefix, newLines.length-suffix);
         $('dialogTitle').textContent = tr('恢复前对比');
-        $('dialogBody').innerHTML = '<p>' + esc(tr('历史标题：') + res.revision.title) + '<br>' + esc(tr('当前标题：') + current.title) + '</p>' +
+        window.LNReactUI.renderRegion($('dialogBody'), '<p>' + esc(tr('历史标题：') + res.revision.title) + '<br>' + esc(tr('当前标题：') + current.title) + '</p>' +
           '<p>' + esc(tr('历史字数：') + res.revision.words + ' · ' + tr('当前字数：') + current.wordCount) + '</p>' +
           '<div class="revision-compare"><section><b>' + tr('历史版本') + '</b><pre>' + esc(res.content) + '</pre></section><section><b>' + tr('当前版本') + '</b><pre>' + esc(current.content) + '</pre></section></div>' +
           '<details><summary>' + esc(tr('变化行：') + removed.length + ' → ' + added.length) + '</summary><pre class="revision-diff-old">' + esc(removed.map(function (line) { return '- ' + line; }).join(String.fromCharCode(10))) + '</pre><pre class="revision-diff-new">' + esc(added.map(function (line) { return '+ ' + line; }).join(String.fromCharCode(10))) + '</pre></details>' +
-          '<button class="primary" id="confirmRevisionRestore">' + tr('确认恢复此版本') + '</button>';
+          '<button class="primary" id="confirmRevisionRestore">' + tr('确认恢复此版本') + '</button>');
         $('confirmRevisionRestore').addEventListener('click', function () {
           this.disabled = true;
           api('/notes/' + noteId + '/revisions/' + revisionId + '/restore', { method:'POST' }).then(function (note) {
@@ -2213,15 +2214,15 @@
       var revs = res.revisions || [];
       $('dialogTitle').textContent = tr('历史版本 · ') + (state.note.title || '');
       if (!revs.length) {
-        $('dialogBody').innerHTML = tr('<p style="margin:0">还没有历史版本。有效内容变更会保留恢复点，连续编辑会合并。</p>');
+        window.LNReactUI.renderRegion($('dialogBody'), tr('<p style="margin:0">还没有历史版本。有效内容变更会保留恢复点，连续编辑会合并。</p>'));
       } else {
-        $('dialogBody').innerHTML = revs.map(function (r) {
+        window.LNReactUI.renderRegion($('dialogBody'), revs.map(function (r) {
           return '<div class="token-row" style="margin-bottom:6px">' +
             '<span class="mono">v' + r.version + '</span>' +
             '<span>' + esc(r.title || tr('未命名')) + ' · Δ ' + ((state.note.wordCount - r.words >= 0 ? '+' : '') + (state.note.wordCount - r.words)) + ' · ' + r.words + tr(' 字</span>') +
             '<span class="when">' + esc(fullDate(r.createdAt)) + '</span>' +
             '<button class="ghost-btn" data-rev="' + esc(r.id) + tr('" style="padding:3px 8px;font-size:10.5px">对比／恢复</button></div>');
-        }).join('');
+        }).join(''));
         Array.prototype.forEach.call($('dialogBody').querySelectorAll('[data-rev]'), function (btn) {
           btn.addEventListener('click', function () {
             previewRevision(state.note.id, btn.dataset.rev);
@@ -2332,4 +2333,4 @@
   }
 
   init();
-})();
+}

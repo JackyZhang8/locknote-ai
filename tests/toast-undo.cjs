@@ -4,7 +4,7 @@ const fs = require('node:fs');
 
 // Resolve pointer-events declarations affecting the toast in stylesheet order.
 function pointerEvents(classes) {
-  const css = fs.readFileSync('web/style.css', 'utf8').split('/*').map((part, index) => index ? part.slice(part.indexOf('*/') + 2) : part).join('');
+  const css = fs.readFileSync('frontend/src/styles.css', 'utf8').split('/*').map((part, index) => index ? part.slice(part.indexOf('*/') + 2) : part).join('');
   let value = 'auto';
   for (const rule of css.matchAll(/([^{}]+)[{]([^{}]*)[}]/g)) {
     const matches = rule[1].trim().split(',').some(selector => {

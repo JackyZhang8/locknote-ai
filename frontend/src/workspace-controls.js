@@ -1,5 +1,5 @@
 /* Remembered pane widths and accessible pointer/keyboard resizing. */
-(function () {
+export function startWorkspaceControls() {
   'use strict';
   function start() {
     var workspace = document.getElementById('workspace');
@@ -28,5 +28,5 @@
     });
     apply();
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-})();
+  start();
+}

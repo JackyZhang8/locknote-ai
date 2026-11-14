@@ -4,7 +4,8 @@
   var library, sequence = 0;
   function en() { return window.LNI18N && window.LNI18N.lang === 'en-US'; }
   function load() {
-    if (!library) library = import('/vendor/mermaid/mermaid.min.js').then(function (module) {
+    var mermaidURL = '/vendor/mermaid/mermaid.min.js';
+    if (!library) library = import(/* @vite-ignore */ mermaidURL).then(function (module) {
       module.default.initialize({ startOnLoad: false, securityLevel: 'strict', suppressErrorRendering: true, theme: 'neutral', fontFamily: 'system-ui, sans-serif', flowchart: { htmlLabels: false, useMaxWidth: false } });
       return module.default;
     });

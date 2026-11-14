@@ -21,7 +21,7 @@ Locknote AI 将桌面工作区、浏览器界面和 MCP 服务集成到一个应
 
 ## 快速开始
 
-需要 Go 1.24+、Wails v2.12.0 以及平台对应的桌面编译环境。dev.sh 面向 macOS。
+需要 Go 1.24+、Node.js 20+、Wails v2.12.0 以及平台对应的桌面编译环境。dev.sh 面向 macOS。
 
 ~~~bash
 go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
@@ -44,6 +44,8 @@ LOCKNOTE_MCP_ADDR=127.0.0.1:7421 ./dev.sh
 ### 构建与命令行
 
 ~~~bash
+npm --prefix frontend ci          # 安装锁定的前端依赖
+npm --prefix frontend run build   # 生成 Go 嵌入的 frontend/dist/
 wails build -skipbindings          # 桌面产物位于 build/bin/
 go build -o /tmp/locknote-mcp .     # 构建可执行文件
 /tmp/locknote-mcp serve            # HTTP／MCP 服务，不打开窗口
@@ -114,13 +116,14 @@ sqlite3 ~/.locknote-mcp/locknote.db
 
 ~~~bash
 ./dev.sh
+npm --prefix frontend run build
+npm --prefix frontend test
 go test ./...
 go vet ./...
-node --test tests/window-controls.cjs tests/svg-preview.cjs
 wails build -skipbindings
 ~~~
 
-前端使用原生 JavaScript／CSS，无 npm 构建步骤。web/ 资源通过 go:embed 打包，修改后需重启开发进程或重新构建。浏览器使用 SSE，桌面使用 Wails 事件接收变更。
+前端采用与 locknote-client 一致的 React 18、TypeScript 5、Vite 5 和 Tailwind CSS 3 工具链，保留原有配色、布局与业务控制逻辑。开发时 Vite 提供热更新；正式构建将 frontend/dist/ 通过 go:embed 嵌入 Go 可执行文件，因此首次运行 Go 测试或构建前需先构建前端。浏览器使用 SSE，桌面使用 Wails 事件接收变更。
 
 | 路径 | 职责 |
 | --- | --- |
@@ -129,12 +132,16 @@ wails build -skipbindings
 | internal/api/ | REST、导入导出和事件 |
 | internal/mcp/ | MCP 工具、资源、提示和传输 |
 | internal/textutil/ | Markdown 文本辅助处理 |
-| web/ | 界面、图形预览和本地 Mermaid 依赖 |
+| frontend/src/ | React 页面、样式、业务控制器及图形预览 |
+| frontend/public/ | 图标与离线 Mermaid 依赖 |
+| frontend/dist/ | Vite 构建产物，由 Go 嵌入 |
 | tests/ | 前端回归测试 |
 | build/ | 桌面资源与构建产物 |
 
-贡献前请阅读 [AGENTS.md](AGENTS.md)。Mermaid 及依赖许可见 [LICENSES.txt](web/vendor/mermaid/LICENSES.txt)。
+贡献前请阅读 [AGENTS.md](AGENTS.md)。Mermaid 及依赖许可见 [LICENSES.txt](frontend/public/vendor/mermaid/LICENSES.txt)。
 
 ## 安全边界
 
 默认监听回环地址。MCP HTTP 校验 Bearer 令牌；监听非回环地址时 REST API 也要求令牌。请勿将明文 HTTP 服务直接暴露到公网，勿将数据库、令牌或私人笔记提交到仓库。
+
+版本号统一在根目录 `VERSION` 中维护。只修改该文件；前端构建会自动同步 `wails.json` 中的打包版本，界面、CLI 和 MCP 使用同一版本。手动运行 `wails build` 前先执行 `npm --prefix frontend run build`，发布标签必须与 `VERSION` 一致。

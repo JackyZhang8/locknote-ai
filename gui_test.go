@@ -29,7 +29,7 @@ func TestDesktopAssetChain(t *testing.T) {
 	}
 	defer func() { _ = st.Close() }()
 
-	webFS, err := fs.Sub(webAssets, "web")
+	webFS, err := fs.Sub(webAssets, "frontend/dist")
 	if err != nil {
 		t.Fatalf("web assets: %v", err)
 	}
@@ -66,7 +66,15 @@ func TestDesktopAssetChain(t *testing.T) {
 	}
 
 	// 静态资源
-	for _, path := range []string{"/app.js", "/style.css", "/markdown.js", "/icon.svg"} {
+	assets, err := fs.Glob(webFS, "assets/*")
+	if err != nil || len(assets) == 0 {
+		t.Fatalf("Vite assets missing: %v", err)
+	}
+	paths := []string{"/icon.svg"}
+	for _, asset := range assets {
+		paths = append(paths, "/"+asset)
+	}
+	for _, path := range paths {
 		rec := get(path)
 		if rec.Code != http.StatusOK || rec.Body.Len() == 0 {
 			t.Errorf("GET %s => %d (%d bytes)", path, rec.Code, rec.Body.Len())

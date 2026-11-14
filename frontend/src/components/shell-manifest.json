@@ -1,0 +1,3347 @@
+[
+  {
+    "tag": "body",
+    "attrs": {},
+    "text": "正在打开笔记库 正在初始化… 0% LockNote.ai AI 原生笔记库，让想法有处安放 MCP 就绪 接入 AI 笔记 最近 搜索 AI 写入 设置 关于 我的资料库 笔记本 ＋ 标签 ＋ 回收站0 全部笔记 新建笔记 ⌘ K 最近更新优先 最近创建优先 按标题排序 按字数排序 多选 已选 0 篇 移动到… 置顶 删除 取消 未分类 / 编辑 预览 H₂ B I ☷ ☰ ❞ { } ↗ ▦ — 未分类 · AI ＋ 标签 点击选择标签，输入新名称后按 Enter 创建。 选择一篇笔记，开始阅读或写作。AI 也可以直接把文档写进这里。 新建笔记 让想法有处安放 偏好设置 在此调整外观、语言、数据与 AI 接入行为，设置会保存在本地数据库。 通用 数据与备份 MCP 与 AI 关于 外观 选择喜欢的界面配色，设置会自动保存。 外观主题 ✓ ✓ ✓ ✓ ✓ 界面语言 简体中文 English 编辑器默认值 打开笔记时默认进入编辑或阅读视图。 默认视图 自动（AI 笔记用阅读） 编辑模式 阅读模式 正文字号 小 中 大 常用快捷键 ⌘ K搜索笔记 ⌘ S保存当前笔记 ⌘ N新建笔记 Esc退出专注模式 数据存放位置 数据以明文 Markdown 存放在本机 SQLite 文件中；复制该文件即为完整备份。 —复制路径 导出与备份 导出为 Markdown 压缩包（.zip），每篇文件末尾附带分类和标签标记；支持直接导入 ZIP 或单篇 Markdown。 导出 Markdown 导入 Markdown 选择 Markdown 或 ZIP 文件；本软件导出的文件会从末尾标记还原标题、分类和标签，无标记则按普通 Markdown 导入。 重复笔记跳过（默认）覆盖已有笔记保留两份 选择文件 危险操作 永久删除回收站里的全部笔记，此操作无法撤销。 清空回收站 服务 状态— MCP 端点— 协议版本— 工具— 访问令牌 打开「接入 AI」面板更换全局令牌，或复制端点与客户端配置。 打开接入面板 AI 行为 AI 写入默认笔记本 留空表示未分类；AI 保存文档时若未指定笔记本，会写入这里。 在笔记列表里显示 AI 写入标记 纯本地 · 无账号 · 无加密 · 支持 MCP 重置为默认 本地明文存储 · 无加密 · 通过 MCP 与 AI 协作 ⌘ K 搜索 · ⌘ S 保存 · ⌘ N 新建 · Esc 退出专注 正在导出备份 正在读取笔记并打包… 0 KB0% 取消 正在清空回收站 正在读取回收站… 0 / 0 篇0% 取消 取消 确定 接入 AI 把下面这个 MCP 端点填进任意支持 MCP 的客户端，AI 就能读写你的笔记。 接入配置 工具 活动 MCP 端点（Streamable HTTP） —复制 默认只监听本机，令牌校验开启；把地址换成局域网 IP 即可让同一网络中的设备接入。 访问令牌更换 —复制 全局共用一个访问令牌；更换后旧令牌立即失效，请更新客户端配置。 客户端配置 Claude Code Claude Desktop Codex 通用 JSON —复制 它是怎么工作的 网页界面和 MCP 服务共用同一个本地 SQLite 数据库。AI 通过 MCP 写入的笔记会立刻出现在左侧列表里 （带 AI 标记）， 你可以在网页里继续编辑，也可以让 AI 追加内容。所有笔记都是纯 Markdown 明文。 工具 资源 提示模板 最近活动 关于 LockNote.ai 关闭"
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "boot-overlay",
+      "id": "bootOverlay",
+      "role": "status",
+      "aria-live": "polite"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "boot-card"
+    }
+  },
+  {
+    "tag": "img",
+    "attrs": {
+      "class": "boot-logo",
+      "src": "/icon.svg",
+      "alt": "",
+      "width": "64",
+      "height": "64",
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "boot-title",
+      "data-i18n": "正在打开笔记库"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "boot-track"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "boot-bar",
+      "id": "bootBar"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "boot-meta"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "bootLabel",
+      "data-i18n": "正在初始化…"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "mono",
+      "id": "bootPct"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {
+      "style": "display:none",
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "defs",
+    "attrs": {}
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-lock",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "rect",
+    "attrs": {
+      "x": "5",
+      "y": "10",
+      "width": "14",
+      "height": "11",
+      "rx": "3"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M8 10V7a4 4 0 0 1 8 0v3M12 14v3"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-note",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M5 3h10l4 4v14H5Z"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M14 3v5h5M8 12h8M8 16h6"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-book",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M4 4h13a2 2 0 0 1 2 2v14H6a3 3 0 0 1-3-3V5a1 1 0 0 1 1-1Z"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M3 16h16M7 4v8"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-folder",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M3 6h7l2 2h9v12H3Z"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-search",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "circle",
+    "attrs": {
+      "cx": "10",
+      "cy": "10",
+      "r": "6.5"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "m15 15 5 5"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-clock",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "circle",
+    "attrs": {
+      "cx": "12",
+      "cy": "12",
+      "r": "9"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 7v5l3 2"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-pin",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "m9 3 10 10-4 1-3 4-3-3-6 6M9 3l-1 5-4 3 8 7"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-plus",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 5v14M5 12h14"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-panel",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "rect",
+    "attrs": {
+      "x": "3",
+      "y": "4",
+      "width": "18",
+      "height": "16",
+      "rx": "2"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M9 4v16"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-check",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "rect",
+    "attrs": {
+      "x": "4",
+      "y": "4",
+      "width": "16",
+      "height": "16",
+      "rx": "3"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "m8 12 3 3 5-6"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-trash",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-gear",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "circle",
+    "attrs": {
+      "cx": "12",
+      "cy": "12",
+      "r": "4"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-expand",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-sparkles",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7Z"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-plug",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M9 3v6M15 3v6M6 9h12v3a6 6 0 0 1-12 0Z"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 18v3"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-download",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 3v12M7 11l5 5 5-5M4 20h16"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-history",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M3 12a9 9 0 1 0 3-6.7M3 4v5h5"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 8v4l3 2"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-x",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M6 6l12 12M18 6L6 18"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-copy",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "rect",
+    "attrs": {
+      "x": "9",
+      "y": "9",
+      "width": "12",
+      "height": "12",
+      "rx": "2"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M15 5H5v10"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-arrow",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M5 12h14M13 6l6 6-6 6"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-info",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "circle",
+    "attrs": {
+      "cx": "12",
+      "cy": "12",
+      "r": "9"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12 11v6M12 7.6v.1"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-pencil",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M4 20h4L20 8l-4-4L4 16Z"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "m14 6 4 4"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-tag",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M3 12V4h8l10 10-8 8Z"
+    }
+  },
+  {
+    "tag": "circle",
+    "attrs": {
+      "cx": "7.5",
+      "cy": "7.5",
+      "r": "1.2"
+    }
+  },
+  {
+    "tag": "symbol",
+    "attrs": {
+      "id": "i-settings",
+      "viewbox": "0 0 24 24"
+    }
+  },
+  {
+    "tag": "path",
+    "attrs": {
+      "d": "M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.23.1a2 2 0 0 1-1.9-.18l-.71-.54a2 2 0 0 0-2.56.32l-.22.38a2 2 0 0 0 .32 2.56l.71.54a2 2 0 0 1 .72 1.77v.26a2 2 0 0 1-.72 1.77l-.71.54a2 2 0 0 0-.32 2.56l.22.38a2 2 0 0 0 2.56.32l.71-.54a2 2 0 0 1 1.9-.18l.23.1a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.23-.1a2 2 0 0 1 1.9.18l.71.54a2 2 0 0 0 2.56-.32l.22-.38a2 2 0 0 0-.32-2.56l-.71-.54a2 2 0 0 1-.72-1.77v-.26a2 2 0 0 1 .72-1.77l.71-.54a2 2 0 0 0 .32-2.56l-.22-.38a2 2 0 0 0-2.56-.32l-.71.54a2 2 0 0 1-1.9.18l-.23-.1a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"
+    }
+  },
+  {
+    "tag": "circle",
+    "attrs": {
+      "cx": "12",
+      "cy": "11.5",
+      "r": "3"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "shell"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "titlebar-strip",
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "header",
+    "attrs": {
+      "class": "top"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "brand"
+    }
+  },
+  {
+    "tag": "img",
+    "attrs": {
+      "class": "brand-mark",
+      "src": "/icon-64.png",
+      "alt": "",
+      "width": "38",
+      "height": "38"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "name"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "sub",
+      "data-i18n": "AI 原生笔记库，让想法有处安放"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "top-right"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "pill",
+      "id": "mcpStatus"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "dot-live"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "mcpStatusText",
+      "data-i18n": "MCP 就绪"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "connectBtn"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-plug"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "接入 AI"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "workspace",
+      "id": "workspace"
+    }
+  },
+  {
+    "tag": "nav",
+    "attrs": {
+      "class": "rail",
+      "data-i18n-aria": "应用导航",
+      "aria-label": "应用导航"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "active",
+      "id": "notesNav",
+      "data-rail": "notes"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-note"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "笔记"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "recentNav",
+      "data-rail": "recent"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-clock"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "最近"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "searchNav",
+      "data-rail": "search"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-search"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "搜索"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "aiNav",
+      "data-rail": "ai"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-sparkles"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "AI 写入"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "bottom"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "settingsNav",
+      "data-rail": "settings"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-settings"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "设置"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "aboutNav",
+      "data-rail": "about"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-info"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "关于"
+    }
+  },
+  {
+    "tag": "aside",
+    "attrs": {
+      "class": "library",
+      "data-i18n-aria": "笔记分类",
+      "aria-label": "笔记分类"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "libtitle",
+      "data-i18n": "我的资料库"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "smartNav"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "笔记本"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "newFolder",
+      "data-i18n-aria": "新建笔记本",
+      "data-i18n-title": "新建笔记本",
+      "aria-label": "新建笔记本",
+      "title": "新建笔记本"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "folders"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "标签"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "newTag",
+      "data-i18n-aria": "新增标签",
+      "data-i18n-title": "新增标签",
+      "aria-label": "新增标签",
+      "title": "新增标签"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "tags"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "trash"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "navrow",
+      "data-scope": "trash"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-trash"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "回收站"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "count",
+      "id": "trashCount"
+    }
+  },
+  {
+    "tag": "section",
+    "attrs": {
+      "class": "list",
+      "data-i18n-aria": "笔记列表",
+      "aria-label": "笔记列表"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "listhead"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "titlebar"
+    }
+  },
+  {
+    "tag": "h1",
+    "attrs": {
+      "id": "listTitle",
+      "data-i18n": "全部笔记"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "primary",
+      "id": "newNote"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-plus"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "新建笔记"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "sub",
+      "id": "listSubtitle"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "class": "search"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-search"
+    }
+  },
+  {
+    "tag": "input",
+    "attrs": {
+      "id": "search",
+      "data-i18n-placeholder": "搜索标题、正文、标签",
+      "data-i18n-aria": "搜索笔记",
+      "placeholder": "搜索标题、正文、标签",
+      "aria-label": "搜索笔记"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "key"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "listtools"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "sort",
+      "data-i18n-aria": "笔记排序",
+      "aria-label": "笔记排序"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "updated",
+      "data-i18n": "最近更新优先"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "created",
+      "data-i18n": "最近创建优先"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "title",
+      "data-i18n": "按标题排序"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "words",
+      "data-i18n": "按字数排序"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "batchToggle",
+      "data-i18n": "多选"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "batch hidden",
+      "id": "batch"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "selectionCount"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "batchMove",
+      "data-i18n-aria": "批量移动",
+      "aria-label": "批量移动"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "",
+      "data-i18n": "移动到…"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "batchPin",
+      "data-i18n": "置顶"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "batchDelete",
+      "data-i18n": "删除"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "cancelBatch",
+      "data-i18n": "取消"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "rows",
+      "id": "rows"
+    }
+  },
+  {
+    "tag": "main",
+    "attrs": {
+      "class": "editor",
+      "data-i18n-aria": "编辑器",
+      "aria-label": "编辑器"
+    }
+  },
+  {
+    "tag": "header",
+    "attrs": {
+      "class": "edithead"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "breadcrumbs"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "toggleLibrary",
+      "data-i18n-title": "收起／展开分类导航",
+      "data-i18n-aria": "收起或展开分类导航",
+      "title": "收起／展开分类导航",
+      "aria-label": "收起或展开分类导航"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-panel"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "crumb",
+      "data-i18n": "未分类"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "sep"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "crumbTitle"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "editactions"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "saved",
+      "id": "saveState"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "modes"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "active",
+      "id": "editMode",
+      "data-i18n": "编辑"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "id": "previewMode",
+      "data-i18n": "预览"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "historyBtn",
+      "data-i18n-title": "历史版本",
+      "data-i18n-aria": "历史版本",
+      "title": "历史版本",
+      "aria-label": "历史版本"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-history"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "focus",
+      "data-i18n-title": "专注写作",
+      "data-i18n-aria": "专注写作",
+      "title": "专注写作",
+      "aria-label": "专注写作"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-expand"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "formatbar",
+      "id": "formatbar"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "h2",
+      "data-i18n-title": "标题",
+      "title": "标题"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "bold",
+      "data-i18n-title": "加粗",
+      "title": "加粗"
+    }
+  },
+  {
+    "tag": "b",
+    "attrs": {}
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "italic",
+      "data-i18n-title": "斜体",
+      "title": "斜体"
+    }
+  },
+  {
+    "tag": "i",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "sep"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "ul",
+      "data-i18n-title": "无序列表",
+      "title": "无序列表"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "ol",
+      "data-i18n-title": "有序列表",
+      "title": "有序列表"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "quote",
+      "data-i18n-title": "引用",
+      "title": "引用"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "code",
+      "data-i18n-title": "代码块",
+      "title": "代码块"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "link",
+      "data-i18n-title": "链接",
+      "title": "链接"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "table",
+      "data-i18n-title": "表格",
+      "title": "表格"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "sep"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-insert": "hr",
+      "data-i18n-title": "分割线",
+      "title": "分割线"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "spacer"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "pinNote",
+      "data-i18n-title": "置顶／取消置顶",
+      "data-i18n-aria": "置顶或取消置顶",
+      "title": "置顶／取消置顶",
+      "aria-label": "置顶或取消置顶"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-pin"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "exportNote",
+      "data-i18n-title": "导出 Markdown",
+      "data-i18n-aria": "导出 Markdown",
+      "title": "导出 Markdown",
+      "aria-label": "导出 Markdown"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-download"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "deleteNote",
+      "data-i18n-title": "移到回收站",
+      "data-i18n-aria": "移到回收站",
+      "title": "移到回收站",
+      "aria-label": "移到回收站"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-trash"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "editor-body",
+      "id": "editorBody"
+    }
+  },
+  {
+    "tag": "article",
+    "attrs": {
+      "class": "document",
+      "id": "document"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "docinner",
+      "id": "doc"
+    }
+  },
+  {
+    "tag": "textarea",
+    "attrs": {
+      "class": "doctitle",
+      "id": "docTitle",
+      "rows": "1",
+      "data-i18n-placeholder": "未命名笔记",
+      "placeholder": "未命名笔记",
+      "spellcheck": "false"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "docmeta"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "docNotebook",
+      "data-i18n": "未分类"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "docDate"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "badge-ai hidden",
+      "id": "docAi"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-sparkles"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "docTags"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "note-tag-control",
+      "id": "noteTagControl"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "type": "button",
+      "class": "add-note-tag",
+      "id": "addNoteTag",
+      "aria-expanded": "false",
+      "aria-controls": "noteTagPicker",
+      "data-i18n": "＋ 标签"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "note-tag-picker hidden",
+      "id": "noteTagPicker",
+      "role": "region",
+      "data-i18n-aria": "设置笔记标签",
+      "aria-label": "设置笔记标签"
+    }
+  },
+  {
+    "tag": "input",
+    "attrs": {
+      "type": "text",
+      "id": "noteTagSearch",
+      "maxlength": "80",
+      "autocomplete": "off",
+      "data-i18n-placeholder": "搜索或新建标签",
+      "placeholder": "搜索或新建标签",
+      "data-i18n-aria": "搜索或新建标签",
+      "aria-label": "搜索或新建标签"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "note-tag-options",
+      "id": "noteTagOptions"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "note-tag-hint",
+      "data-i18n": "点击选择标签，输入新名称后按 Enter 创建。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "body-wrap"
+    }
+  },
+  {
+    "tag": "textarea",
+    "attrs": {
+      "class": "body",
+      "id": "docBody",
+      "data-i18n-placeholder": "从这里开始写…\n\n支持 Markdown：## 标题、- 列表、**重点**、> 引用、```代码块```",
+      "placeholder": "从这里开始写…\n\n支持 Markdown：## 标题、- 列表、**重点**、> 引用、```代码块```",
+      "spellcheck": "false"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "preview hidden",
+      "id": "preview"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "editor-empty hidden",
+      "id": "editorEmpty"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "mark"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-note"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "data-i18n-html": "empty.editor"
+    }
+  },
+  {
+    "tag": "br",
+    "attrs": {}
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "primary",
+      "id": "emptyNew"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-plus"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "新建笔记"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "editor-scrollbar hidden",
+      "id": "editorScrollbar",
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "editor-scroll-thumb",
+      "id": "editorScrollThumb"
+    }
+  },
+  {
+    "tag": "footer",
+    "attrs": {
+      "class": "editorfooter"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "wordCount"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "right"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "docId"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "让想法有处安放"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-page hidden",
+      "id": "settingsPage"
+    }
+  },
+  {
+    "tag": "section",
+    "attrs": {
+      "class": "settings",
+      "role": "region",
+      "aria-labelledby": "settingsTitle"
+    }
+  },
+  {
+    "tag": "header",
+    "attrs": {
+      "class": "settings-head"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "h2",
+    "attrs": {
+      "id": "settingsTitle",
+      "data-i18n": "偏好设置"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "data-i18n": "在此调整外观、语言、数据与 AI 接入行为，设置会保存在本地数据库。"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "settingsClose",
+      "data-i18n-aria": "关闭",
+      "aria-label": "关闭"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-x"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-main"
+    }
+  },
+  {
+    "tag": "nav",
+    "attrs": {
+      "class": "settings-tabs",
+      "id": "settingsTabs",
+      "data-i18n-aria": "设置",
+      "aria-label": "设置"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "active",
+      "data-settings-tab": "general"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-gear"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "通用"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-settings-tab": "data"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-book"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "数据与备份"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-settings-tab": "mcp"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-plug"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "MCP 与 AI"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-settings-tab": "about"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-info"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "关于"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-panels",
+      "id": "settingsPanels"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-panel",
+      "data-panel": "general"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "外观"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "选择喜欢的界面配色，设置会自动保存。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-row"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "themeLabel",
+      "data-i18n": "外观主题"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "theme-swatches",
+      "id": "themeSwatches",
+      "role": "group",
+      "aria-labelledby": "themeLabel"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "type": "button",
+      "class": "theme-swatch",
+      "data-theme-choice": "green",
+      "style": "--swatch: #22c55e",
+      "aria-pressed": "false",
+      "data-i18n-aria": "草木绿",
+      "aria-label": "草木绿",
+      "data-i18n-title": "草木绿",
+      "title": "草木绿"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "type": "button",
+      "class": "theme-swatch",
+      "data-theme-choice": "coral",
+      "style": "--swatch: #e04747",
+      "aria-pressed": "false",
+      "data-i18n-aria": "珊瑚红",
+      "aria-label": "珊瑚红",
+      "data-i18n-title": "珊瑚红",
+      "title": "珊瑚红"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "type": "button",
+      "class": "theme-swatch",
+      "data-theme-choice": "sunset",
+      "style": "--swatch: #f86a3b",
+      "aria-pressed": "false",
+      "data-i18n-aria": "落日橙",
+      "aria-label": "落日橙",
+      "data-i18n-title": "落日橙",
+      "title": "落日橙"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "type": "button",
+      "class": "theme-swatch",
+      "data-theme-choice": "blue",
+      "style": "--swatch: #4387c5",
+      "aria-pressed": "false",
+      "data-i18n-aria": "雾蓝",
+      "aria-label": "雾蓝",
+      "data-i18n-title": "雾蓝",
+      "title": "雾蓝"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "type": "button",
+      "class": "theme-swatch",
+      "data-theme-choice": "lavender",
+      "style": "--swatch: #9470c7",
+      "aria-pressed": "false",
+      "data-i18n-aria": "薰衣草紫",
+      "aria-label": "薰衣草紫",
+      "data-i18n-title": "薰衣草紫",
+      "title": "薰衣草紫"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "aria-hidden": "true"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-row"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "for": "setLanguage",
+      "data-i18n": "界面语言"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "setLanguage",
+      "data-setting": "language"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "zh-CN",
+      "data-i18n": "简体中文"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "en-US"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "编辑器默认值"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "打开笔记时默认进入编辑或阅读视图。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-row"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "for": "setEditorMode",
+      "data-i18n": "默认视图"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "setEditorMode",
+      "data-setting": "editorMode"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "auto",
+      "data-i18n": "自动（AI 笔记用阅读）"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "edit",
+      "data-i18n": "编辑模式"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "preview",
+      "data-i18n": "阅读模式"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-row"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "for": "setFontSize",
+      "data-i18n": "正文字号"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "setFontSize",
+      "data-setting": "fontSize"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "small",
+      "data-i18n": "小"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "medium",
+      "data-i18n": "中"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "large",
+      "data-i18n": "大"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "常用快捷键"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "shortcuts"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "kbd",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "搜索笔记"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "kbd",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "保存当前笔记"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "kbd",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "新建笔记"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "kbd",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "退出专注模式"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-panel hidden",
+      "data-panel": "data"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "数据存放位置"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "数据以明文 Markdown 存放在本机 SQLite 文件中；复制该文件即为完整备份。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-path"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "mono",
+      "id": "setDbPath"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "copyDbPath",
+      "data-i18n": "复制路径"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "导出与备份"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "导出为 Markdown 压缩包（.zip），每篇文件末尾附带分类和标签标记；支持直接导入 ZIP 或单篇 Markdown。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-actions"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "exportMarkdown",
+      "data-i18n": "导出 Markdown"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "导入 Markdown"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "选择 Markdown 或 ZIP 文件；本软件导出的文件会从末尾标记还原标题、分类和标签，无标记则按普通 Markdown 导入。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-actions"
+    }
+  },
+  {
+    "tag": "input",
+    "attrs": {
+      "type": "file",
+      "id": "importFiles",
+      "class": "hidden",
+      "accept": ".md,.markdown,.txt,.zip,text/markdown,text/plain,application/zip",
+      "multiple": null
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "for": "importDuplicates",
+      "data-i18n": "重复笔记"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "importDuplicates"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "skip"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "replace"
+    }
+  },
+  {
+    "tag": "option",
+    "attrs": {
+      "value": "copy"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "importPick",
+      "data-i18n": "选择文件"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "set-note",
+      "id": "importStatus"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section danger"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "危险操作"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "永久删除回收站里的全部笔记，此操作无法撤销。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-actions"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "danger-btn",
+      "id": "emptyTrash",
+      "data-i18n": "清空回收站"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "set-note",
+      "id": "trashTotal"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-panel hidden",
+      "data-panel": "mcp"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "服务"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "kv"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "状态"
+    }
+  },
+  {
+    "tag": "b",
+    "attrs": {
+      "id": "setStatus"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "MCP 端点"
+    }
+  },
+  {
+    "tag": "b",
+    "attrs": {
+      "class": "mono",
+      "id": "setEndpoint"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "协议版本"
+    }
+  },
+  {
+    "tag": "b",
+    "attrs": {
+      "class": "mono",
+      "id": "setProtocol"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "工具"
+    }
+  },
+  {
+    "tag": "b",
+    "attrs": {
+      "id": "setToolCount"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "访问令牌"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "打开「接入 AI」面板更换全局令牌，或复制端点与客户端配置。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-actions"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "openConnect",
+      "data-i18n": "打开接入面板"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "h3",
+    "attrs": {
+      "data-i18n": "AI 行为"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-row"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "for": "setAiNotebook",
+      "data-i18n": "AI 写入默认笔记本"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "setAiNotebook",
+      "data-setting": "aiNotebook"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "set-hint",
+      "data-i18n": "留空表示未分类；AI 保存文档时若未指定笔记本，会写入这里。"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "class": "check"
+    }
+  },
+  {
+    "tag": "input",
+    "attrs": {
+      "type": "checkbox",
+      "id": "setAiBadge",
+      "data-setting": "showAiBadge"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "在笔记列表里显示 AI 写入标记"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "settings-panel hidden",
+      "data-panel": "about"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "set-section"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "about-copy",
+      "id": "settingsAbout"
+    }
+  },
+  {
+    "tag": "footer",
+    "attrs": {
+      "class": "settings-foot"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "set-note",
+      "data-i18n": "纯本地 · 无账号 · 无加密 · 支持 MCP"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "settingsReset",
+      "data-i18n": "重置为默认"
+    }
+  },
+  {
+    "tag": "footer",
+    "attrs": {
+      "class": "foot"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "footInfo",
+      "data-i18n": "本地明文存储 · 无加密 · 通过 MCP 与 AI 协作"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "secondary",
+      "data-i18n-html": "foot.shortcuts"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "toast",
+      "id": "toast",
+      "role": "status"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "overlay",
+      "id": "exportOverlay",
+      "role": "dialog",
+      "aria-modal": "true",
+      "data-i18n-aria": "导出备份",
+      "aria-label": "导出备份"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "dialog export-dialog"
+    }
+  },
+  {
+    "tag": "h2",
+    "attrs": {
+      "data-i18n": "正在导出备份"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "dialog-hint",
+      "id": "exportStage",
+      "data-i18n": "正在读取笔记并打包…"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "progress-track"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "progress-bar",
+      "id": "exportBar"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "progress-meta"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "exportBytes"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "mono",
+      "id": "exportPct"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "export-actions"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "exportCancel",
+      "data-i18n": "取消"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "overlay",
+      "id": "trashOverlay",
+      "role": "dialog",
+      "aria-modal": "true",
+      "data-i18n-aria": "清空回收站",
+      "aria-label": "清空回收站"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "dialog export-dialog"
+    }
+  },
+  {
+    "tag": "h2",
+    "attrs": {
+      "data-i18n": "正在清空回收站"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "dialog-hint",
+      "id": "trashStage",
+      "data-i18n": "正在读取回收站…"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "progress-track"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "progress-bar",
+      "id": "trashBar"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "progress-meta"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "trashMeta"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "mono",
+      "id": "trashPct"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "export-actions"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "trashCancel",
+      "data-i18n": "取消"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "ctxmenu hidden",
+      "id": "ctxMenu",
+      "role": "menu",
+      "data-i18n-aria": "操作菜单",
+      "aria-label": "操作菜单"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "ctxmenu-head",
+      "id": "ctxHead"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "ctxItems"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "overlay",
+      "id": "formOverlay"
+    }
+  },
+  {
+    "tag": "section",
+    "attrs": {
+      "class": "dialog",
+      "role": "dialog",
+      "aria-modal": "true",
+      "aria-labelledby": "formTitle"
+    }
+  },
+  {
+    "tag": "h2",
+    "attrs": {
+      "id": "formTitle"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "dialog-hint hidden",
+      "id": "formHint"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "class": "dialog-field hidden",
+      "id": "formInputWrap"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "formLabel"
+    }
+  },
+  {
+    "tag": "input",
+    "attrs": {
+      "type": "text",
+      "id": "formInput",
+      "autocomplete": "off",
+      "spellcheck": "false"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "class": "dialog-field hidden",
+      "id": "formSelectWrap"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "formSelectLabel"
+    }
+  },
+  {
+    "tag": "select",
+    "attrs": {
+      "id": "formSelect"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "class": "dialog-error hidden",
+      "id": "formError"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "dialog-actions"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "formCancel",
+      "data-i18n": "取消"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "primary",
+      "id": "formConfirm",
+      "data-i18n": "确定"
+    }
+  },
+  {
+    "tag": "aside",
+    "attrs": {
+      "class": "drawer",
+      "id": "drawer",
+      "data-i18n-aria": "接入 AI",
+      "aria-label": "接入 AI"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "drawer-head"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {}
+  },
+  {
+    "tag": "h2",
+    "attrs": {
+      "id": "drawerTitle",
+      "data-i18n": "接入 AI"
+    }
+  },
+  {
+    "tag": "p",
+    "attrs": {
+      "id": "drawerSub",
+      "data-i18n": "把下面这个 MCP 端点填进任意支持 MCP 的客户端，AI 就能读写你的笔记。"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "iconbtn",
+      "id": "drawerClose",
+      "data-i18n-aria": "关闭",
+      "aria-label": "关闭"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-x"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "drawer-body"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "tabs",
+      "id": "drawerTabs"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-tab": "connect",
+      "class": "active",
+      "data-i18n": "接入配置"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-tab": "tools",
+      "data-i18n": "工具"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-tab": "activity",
+      "data-i18n": "活动"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "panel-connect"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "field"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "data-i18n": "MCP 端点（Streamable HTTP）"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "codebox",
+      "id": "endpointBox"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "copy",
+      "data-copy": "endpoint"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "复制"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "hint",
+      "data-i18n": "默认只监听本机，令牌校验开启；把地址换成局域网 IP 即可让同一网络中的设备接入。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "field"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "token-heading"
+    }
+  },
+  {
+    "tag": "label",
+    "attrs": {
+      "data-i18n": "访问令牌"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "ghost-btn",
+      "id": "rotateToken",
+      "data-i18n": "更换"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "codebox",
+      "id": "tokenBox"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "copy",
+      "data-copy": "token"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "复制"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "hint",
+      "data-i18n": "全局共用一个访问令牌；更换后旧令牌立即失效，请更新客户端配置。"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section-title"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "客户端配置"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "tabs",
+      "id": "clientTabs",
+      "style": "margin-bottom:12px"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-client": "claude",
+      "class": "active"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-client": "desktop"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-client": "codex"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "data-client": "json",
+      "data-i18n": "通用 JSON"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "codebox",
+      "id": "clientBox"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "copy",
+      "data-copy": "client"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "复制"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "hint",
+      "id": "clientHint"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section-title"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "它是怎么工作的"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "tool-item"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "desc",
+      "style": "margin-top:0",
+      "data-i18n-html": "drawer.how"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "class": "badge-ai",
+      "style": "vertical-align:1px"
+    }
+  },
+  {
+    "tag": "svg",
+    "attrs": {}
+  },
+  {
+    "tag": "use",
+    "attrs": {
+      "href": "#i-sparkles"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "panel-tools",
+      "class": "hidden"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section-title"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "工具"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "id": "toolCount"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "tool-list",
+      "id": "toolList"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section-title"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "资源"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "tool-list",
+      "id": "resourceList"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section-title"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "提示模板"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "tool-list",
+      "id": "promptList"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "panel-activity",
+      "class": "hidden"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "section-title"
+    }
+  },
+  {
+    "tag": "span",
+    "attrs": {
+      "data-i18n": "最近活动"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "activityList"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "overlay",
+      "id": "drawerOverlay"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "class": "overlay",
+      "id": "dialogOverlay"
+    }
+  },
+  {
+    "tag": "section",
+    "attrs": {
+      "class": "dialog",
+      "style": "background:var(--paper);border-radius:14px;width:min(560px,100%);padding:30px;box-shadow:var(--shadow);margin:auto"
+    }
+  },
+  {
+    "tag": "h2",
+    "attrs": {
+      "style": "margin:0 0 16px;font-size:20px",
+      "id": "dialogTitle",
+      "data-i18n": "关于 LockNote.ai"
+    }
+  },
+  {
+    "tag": "div",
+    "attrs": {
+      "id": "dialogBody",
+      "style": "font-size:13px;line-height:1.9;color:var(--muted)"
+    }
+  },
+  {
+    "tag": "button",
+    "attrs": {
+      "class": "primary",
+      "id": "dialogClose",
+      "style": "margin-top:14px",
+      "data-i18n": "关闭"
+    }
+  }
+]
