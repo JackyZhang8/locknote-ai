@@ -45,6 +45,10 @@ appdir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 exec "$appdir/usr/bin/locknote-ai" "$@"
 APPRUN
 chmod +x "$appdir/AppRun"
-curl --fail --location --retry 3 -o "$work/appimagetool" https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+# appimagetool is now maintained in its own repository. The old AppImageKit
+# release URL no longer provides this asset.
+curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 \
+  -o "$work/appimagetool" \
+  https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
 chmod +x "$work/appimagetool"
 ARCH=x86_64 "$work/appimagetool" --appimage-extract-and-run "$appdir" "dist/$name.AppImage"
