@@ -16,3 +16,4 @@
 docs/plans/
 outputs/
 build/
+.workbuddy-ai/memory/
