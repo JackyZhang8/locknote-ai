@@ -51,6 +51,19 @@ If the port is occupied, the desktop workspace remains available, but the AI end
 LOCKNOTE_MCP_ADDR=127.0.0.1:7421 ./dev.sh
 ~~~
 
+### Release Packages
+
+Release assets use the name `locknote-ai-<version>-<platform>`:
+
+| Platform | File suffixes |
+| --- | --- |
+| macOS Apple Silicon | `macos-arm64.dmg`, `macos-arm64.app.tar.gz` |
+| macOS Intel | `macos-x86_64.dmg`, `macos-x86_64.app.tar.gz` |
+| Windows x64 | `windows.exe` (installer), `windows.msi` |
+| Linux x64 | `linux.deb`, `linux.AppImage` |
+
+Each release includes `SHA256SUMS`. On macOS, drag the app into Applications. On Windows, the recommended `.exe` installer installs WebView2 when needed; install Microsoft Edge WebView2 Runtime before using the `.msi`. Linux packages target Ubuntu 22.04. The AppImage also requires system GTK 3 and WebKitGTK 4.0 (`libgtk-3-0`, `libwebkit2gtk-4.0-37`); it is not a fully self-contained runtime. Use `--appimage-extract-and-run` to bypass FUSE if needed.
+
 ### Build and CLI
 
 ~~~bash
@@ -63,7 +76,7 @@ go build -o /tmp/locknote-mcp .     # Build the executable
 /tmp/locknote-mcp token -new default # Rotate the global token
 ~~~
 
-The current Wails output name is Locknote. Use -addr to set the server listening address and -data to select the data directory. The corresponding environment variables are LOCKNOTE_MCP_ADDR and LOCKNOTE_MCP_HOME.
+The Wails output name is `locknote-ai`. Use -addr to set the server listening address and -data to select the data directory. The corresponding environment variables are LOCKNOTE_MCP_ADDR and LOCKNOTE_MCP_HOME.
 
 ## Connect AI
 

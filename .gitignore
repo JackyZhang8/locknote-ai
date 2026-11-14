@@ -1,6 +1,10 @@
 # 构建产物（wails build 输出，体积大，不入库）
 /build/bin/
 /locknote-mcp
+/locknote-ai
+/locknote-ai.exe
+/build/packaging/*.wixobj
+/build/packaging/*.wixpdb
 /dist/
 
 # 本地数据：明文笔记库，绝不提交

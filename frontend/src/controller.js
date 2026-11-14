@@ -2314,6 +2314,9 @@ export function startWorkspace() {
       i18n.apply(document);
       window.addEventListener('ln:language', refreshLanguage);
       bind();
+      if (window.runtime && window.runtime.EventsEmit) {
+        window.runtime.EventsEmit('locknote:frontend-ready');
+      }
       bootStep(24, tr('正在连接本地服务…'));
       return loadSystem();
     }).then(function () {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="Locknote AI" Language="1033" Version="$(var.Version)"
+           Manufacturer="Locknote AI" UpgradeCode="34830A54-BD51-4985-9457-2DDDA822042D">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Platform="x64" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Locknote AI is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="Locknote AI">
+          <Component Id="Application" Guid="9EC1933A-1D2D-49E1-8090-CDA50CCCD9FD" Win64="yes">
+            <File Id="ApplicationExe" Source="$(var.Binary)" Name="locknote-ai.exe" KeyPath="yes">
+              <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Locknote AI" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
+            </File>
+          </Component>
+          <Component Id="License" Guid="58E02BF9-E410-4615-9C48-800394130DEA" Win64="yes">
+            <File Source="LICENSE" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder" />
+    </Directory>
+    <Feature Id="MainFeature" Title="Locknote AI" Level="1">
+      <ComponentRef Id="Application" />
+      <ComponentRef Id="License" />
+    </Feature>
+    <Property Id="ARPCOMMENTS" Value="Local-first Markdown notes with AI integration. Requires Microsoft Edge WebView2 Runtime." />
+  </Product>
+</Wix>

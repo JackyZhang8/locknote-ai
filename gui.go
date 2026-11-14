@@ -86,8 +86,7 @@ func runGUI(args []string) {
 	})
 
 	app := &desktop{}
-	var closeMu sync.Mutex
-	closeReady := false
+	var closeState desktopCloseState
 	handler := apiServer.Handler()
 
 	// MCP 写入后：SSE 给浏览器，Wails 事件给桌面窗口。
@@ -144,6 +143,9 @@ func runGUI(args []string) {
 			if savedBounds.Maximized {
 				wruntime.WindowMaximise(ctx)
 			}
+			wruntime.EventsOn(ctx, "locknote:frontend-ready", func(...interface{}) {
+				closeState.frontendStarted()
+			})
 			wruntime.EventsOn(ctx, "locknote:close-ready", func(...interface{}) {
 				savedBounds.Maximized = wruntime.WindowIsMaximised(ctx)
 				if wruntime.WindowIsNormal(ctx) {
@@ -153,18 +155,13 @@ func runGUI(args []string) {
 				if data, err := json.Marshal(savedBounds); err == nil {
 					_ = st.SetSetting("window.bounds", string(data))
 				}
-				closeMu.Lock()
-				closeReady = true
-				closeMu.Unlock()
+				closeState.saveFinished()
 				wruntime.Quit(ctx)
 			})
 			setApplicationIcon()
 		},
 		OnBeforeClose: func(ctx context.Context) bool {
-			closeMu.Lock()
-			ready := closeReady
-			closeMu.Unlock()
-			if !ready {
+			if closeState.preventClose() {
 				wruntime.EventsEmit(ctx, "locknote:before-close")
 				return true
 			}

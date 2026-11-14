@@ -51,6 +51,19 @@ go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
 LOCKNOTE_MCP_ADDR=127.0.0.1:7421 ./dev.sh
 ~~~
 
+### 发布安装包
+
+GitHub Release 文件统一以 `locknote-ai-<版本号>-<平台>` 命名：
+
+| 平台 | 文件后缀 |
+| --- | --- |
+| macOS Apple Silicon | `macos-arm64.dmg`、`macos-arm64.app.tar.gz` |
+| macOS Intel | `macos-x86_64.dmg`、`macos-x86_64.app.tar.gz` |
+| Windows x64 | `windows.exe`（安装程序）、`windows.msi` |
+| Linux x64 | `linux.deb`、`linux.AppImage` |
+
+发布页同时提供 `SHA256SUMS` 校验文件。macOS 将应用拖入 Applications 即可安装。Windows 推荐使用 `.exe`，会按需安装 WebView2；使用 `.msi` 前需安装 Microsoft Edge WebView2 Runtime。Linux 面向 Ubuntu 22.04，AppImage 也需要系统提供 GTK 3 和 WebKitGTK 4.0（`libgtk-3-0`、`libwebkit2gtk-4.0-37`），不是完全独立的运行环境；必要时可通过 `--appimage-extract-and-run` 绕过 FUSE。
+
 ### 构建与命令行
 
 ~~~bash
@@ -63,7 +76,7 @@ go build -o /tmp/locknote-mcp .     # 构建可执行文件
 /tmp/locknote-mcp token -new 默认  # 更换全局令牌
 ~~~
 
-Wails 当前输出名称为 Locknote。服务用 -addr 指定监听地址，各模式用 -data 指定数据目录。环境变量为 LOCKNOTE_MCP_ADDR 和 LOCKNOTE_MCP_HOME。
+Wails 输出名称为 `locknote-ai`。服务用 -addr 指定监听地址，各模式用 -data 指定数据目录。环境变量为 LOCKNOTE_MCP_ADDR 和 LOCKNOTE_MCP_HOME。
 
 ## 接入 AI
 

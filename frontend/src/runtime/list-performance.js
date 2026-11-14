@@ -52,6 +52,5 @@
     return function () { pending = true; arm(); };
   }
   var api = { createModel: createModel, createQueue: createQueue };
-  if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.LNListPerformance = api;
+  root.LNListPerformance = api;
 })(typeof window !== 'undefined' ? window : globalThis);
