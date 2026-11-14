@@ -1,0 +1,140 @@
+# Locknote AI
+
+**A local-first Markdown notes app where you and AI share one knowledge base.**
+
+[简体中文](README.md) · English
+
+Locknote AI combines a desktop workspace, browser interface, and MCP server in one application. Edit notes yourself or let AI read, organize, and update documents. Data stays in a local SQLite database; no cloud account is required.
+
+> Notes are stored in plaintext without database encryption. The product is called Locknote AI; existing commands, the Go module, and the default data directory still use locknote-mcp.
+
+## Features
+
+- **Markdown workspace**: editing and reading modes, notebooks, multiple tags, full-text search, pinned notes, and batch actions.
+- **Diagram previews**: SVG, Mermaid, and flowchart with source/preview switching. Mermaid is bundled locally for offline use.
+- **AI integration**: MCP over HTTP or stdio, 14 tools, resources, and prompt templates. The activity list only shows MCP tool operations.
+- **Version recovery**: up to 20 historical versions, with title, word count, and body comparisons before restoring. Empty placeholder notes do not generate history; consecutive UI edits within 30 seconds share a recovery point.
+- **Import and export**: Markdown and ZIP, drag-and-drop import, and options to skip, replace, or keep duplicate notes.
+- **Trash**: deletion confirmation, a short undo window, and cancellable cleanup with progress and a separate transaction per note. Permanent deletion cannot be undone.
+- **Desktop controls**: remembered window state, resizable panes, title-bar double-click to maximize/restore, and save checks before closing.
+- **Personalization**: five color palettes, Chinese and English, default editor mode, and font size.
+
+## Quick Start
+
+Install Go 1.24+, Wails v2.12.0, and the desktop build prerequisites for your platform. The dev.sh script targets macOS.
+
+~~~bash
+go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+./dev.sh
+~~~
+
+| Item | Default |
+| --- | --- |
+| Browser interface | http://127.0.0.1:7420 |
+| MCP endpoint | http://127.0.0.1:7420/mcp |
+| Database | ~/.locknote-mcp/locknote.db |
+| Global token file | ~/.locknote-mcp/token |
+
+If the port is occupied, the desktop workspace remains available, but the AI endpoint does not start. To use another port:
+
+~~~bash
+LOCKNOTE_MCP_ADDR=127.0.0.1:7421 ./dev.sh
+~~~
+
+### Build and CLI
+
+~~~bash
+wails build -skipbindings          # Desktop output: build/bin/
+go build -o /tmp/locknote-mcp .     # Build the executable
+/tmp/locknote-mcp serve            # HTTP/MCP server without a window
+/tmp/locknote-mcp stdio            # MCP stdio transport
+/tmp/locknote-mcp token -new default # Rotate the global token
+~~~
+
+The current Wails output name is Locknote. Use -addr to set the server listening address and -data to select the data directory. The corresponding environment variables are LOCKNOTE_MCP_ADDR and LOCKNOTE_MCP_HOME.
+
+## Connect AI
+
+Open **Connect AI** in the upper-right corner to copy the current endpoint, global token, and client configuration. The panel includes examples for Claude Code, Claude Desktop, Codex, and other clients.
+
+- **HTTP**: keep the desktop app or serve process running and connect the client to /mcp.
+- **stdio**: configure the client to launch the executable with stdio. Select the same data directory to share notes.
+- **Token**: tokens begin with locknote_. The database stores only a hash; the token file uses 0600 permissions. Rotation immediately invalidates the previous token, so update HTTP client configurations afterward.
+
+Example request:
+
+> Summarize the project architecture in Markdown, save it to the “Work Projects” notebook in Locknote AI, and add “architecture” and “project docs” tags. Reuse the same external_id for future updates.
+
+### MCP Capabilities
+
+| Category | Tools |
+| --- | --- |
+| Write and edit | save_note, save_notes, update_note, append_to_note, move_note |
+| Query | get_note, list_notes, search_notes, workspace_overview |
+| Organize | list_notebooks, create_notebook, list_tags |
+| Delete and restore | delete_note, restore_note |
+
+save_note supports a stable external_id and an if_exists policy: append (default), replace, or skip. Resources include locknote://notes/{id} and notebook, tag, and recent-note indexes. Available prompt templates are save_project_docs, summarize_notebook, and daily_digest.
+
+## Import, Export, and Backups
+
+Exports preserve the note body and append the title, notebook, and tags in a **dedicated HTML comment at the end of the file**. Import restores this metadata and removes the marker from the body. Files without the marker are treated as ordinary Markdown; front matter is not interpreted.
+
+Import Markdown or ZIP from **Settings → Data & Backup**, or drag files into the window. ZIP files do not need extraction. Duplicates are identified by title and notebook; the default is to skip them, with options to replace or keep both. Replacement skips notes whose body is unchanged.
+
+Full exports use a dedicated read-only snapshot and a bounded queue to compress batches directly into ZIP, without intermediate Markdown files or loading all note bodies into memory. Editing can continue during export; cancellation stops further reads. The browser still buffers the compressed ZIP before saving.
+
+Markdown backups do not include empty notebooks, unused tags, version history, preferences, or tokens. Use a database backup for a complete copy of the database.
+
+### Database Backup
+
+A running SQLite database may have WAL files, so copying only the database file can produce an incomplete backup. Use SQLite's online backup command. Open a terminal:
+
+~~~bash
+sqlite3 ~/.locknote-mcp/locknote.db
+~~~
+
+Then run these commands, replacing the destination with your backup path:
+
+~~~text
+.backup /absolute/path/to/locknote-ai.db
+.quit
+~~~
+
+Quit the app before restoring and retain a backup of the current database. Database backups and exported notes may contain sensitive information.
+
+## Usage Tips
+
+- Use ⌘/Ctrl + K to search, ⌘/Ctrl + S to save, and ⌘/Ctrl + N to create a note.
+- In search, use ↑ / ↓ to select, Enter to open, and Esc to clear and exit.
+- Use **＋ Tags** below the title to select or create tags; × removes an association.
+- Automatic cleanup only applies to untouched default blank drafts created during the current session, without tags or a pin.
+
+## Development
+
+~~~bash
+./dev.sh
+go test ./...
+go vet ./...
+node --test tests/window-controls.cjs tests/svg-preview.cjs
+wails build -skipbindings
+~~~
+
+The frontend uses plain JavaScript and CSS, with no npm build step. Assets under web/ are bundled through go:embed; restart the development process or rebuild after editing them. Browser clients receive changes through SSE; the desktop app uses Wails events.
+
+| Path | Responsibility |
+| --- | --- |
+| main.go / gui.go | CLI, window, and service startup |
+| internal/store/ | SQLite, notes, notebooks, tags, history, and indexes |
+| internal/api/ | REST, import/export, and events |
+| internal/mcp/ | MCP tools, resources, prompts, and transports |
+| internal/textutil/ | Markdown text helpers |
+| web/ | UI, diagram previews, and bundled Mermaid dependencies |
+| tests/ | Frontend regression tests |
+| build/ | Desktop resources and build output |
+
+Read [AGENTS.md](AGENTS.md) before contributing. Mermaid and dependency licenses are listed in [LICENSES.txt](web/vendor/mermaid/LICENSES.txt).
+
+## Security Boundaries
+
+The server listens on loopback by default. MCP HTTP requires a Bearer token; REST API requests also require a token when listening on a non-loopback address. Do not expose the plaintext HTTP service directly to the public internet or commit databases, tokens, or private notes to the repository.

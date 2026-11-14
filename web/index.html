@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LockNote.ai · AI 原生笔记库</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+</head>
+<body>
+
+<!-- 首屏加载遮罩：静态 HTML 直接可见，JS 还没跑起来时也有反馈。 -->
+<div class="boot-overlay" id="bootOverlay" role="status" aria-live="polite">
+  <div class="boot-card">
+    <img class="boot-logo" src="/icon.svg" alt="" width="64" height="64" aria-hidden="true">
+    <div class="boot-title" data-i18n="正在打开笔记库">正在打开笔记库</div>
+    <div class="boot-track"><div class="boot-bar" id="bootBar"></div></div>
+    <div class="boot-meta">
+      <span id="bootLabel" data-i18n="正在初始化…">正在初始化…</span>
+      <span class="mono" id="bootPct">0%</span>
+    </div>
+  </div>
+</div>
+
+<svg style="display:none" aria-hidden="true"><defs>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5Z"/><path d="M14 3v5h5M8 12h8M8 16h6"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h13a2 2 0 0 1 2 2v14H6a3 3 0 0 1-3-3V5a1 1 0 0 1 1-1Z"/><path d="M3 16h16M7 4v8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v12H3Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="m9 3 10 10-4 1-3 4-3-3-6 6M9 3l-1 5-4 3 8 7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v6M15 3v6M6 9h12v3a6 6 0 0 1-12 0Z"/><path d="M12 18v3"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/><path d="M12 8v4l3 2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M15 5H5v10"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.1"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L20 8l-4-4L4 16Z"/><path d="m14 6 4 4"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8Z"/><circle cx="7.5" cy="7.5" r="1.2"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 1.72l-.12.88a2 2 0 0 1-1.18 1.52l-.23.1a2 2 0 0 1-1.9-.18l-.71-.54a2 2 0 0 0-2.56.32l-.22.38a2 2 0 0 0 .32 2.56l.71.54a2 2 0 0 1 .72 1.77v.26a2 2 0 0 1-.72 1.77l-.71.54a2 2 0 0 0-.32 2.56l.22.38a2 2 0 0 0 2.56.32l.71-.54a2 2 0 0 1 1.9-.18l.23.1a2 2 0 0 1 1.18 1.52l.12.88a2 2 0 0 0 2 1.72h.44a2 2 0 0 0 2-1.72l.12-.88a2 2 0 0 1 1.18-1.52l.23-.1a2 2 0 0 1 1.9.18l.71.54a2 2 0 0 0 2.56-.32l.22-.38a2 2 0 0 0-.32-2.56l-.71-.54a2 2 0 0 1-.72-1.77v-.26a2 2 0 0 1 .72-1.77l.71-.54a2 2 0 0 0 .32-2.56l-.22-.38a2 2 0 0 0-2.56-.32l-.71.54a2 2 0 0 1-1.9.18l-.23-.1a2 2 0 0 1-1.18-1.52l-.12-.88a2 2 0 0 0-2-1.72Z"/><circle cx="12" cy="11.5" r="3"/></symbol>
+</defs></svg>
+
+<div class="shell">
+
+  <!-- macOS 桌面窗口里，交通灯（关闭／最小化／最大化）单独占一条可拖拽的带子，
+       只在 Wails 窗口中出现，浏览器里高度为 0。 -->
+  <div class="titlebar-strip" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="brand">
+      <img class="brand-mark" src="/icon-64.png" alt="" width="38" height="38">
+      <span class="name">LockNote.ai</span>
+      <span class="sub" data-i18n="AI 原生笔记库，让想法有处安放">AI 原生笔记库，让想法有处安放</span>
+    </div>
+    <div class="top-right">
+      <span class="pill" id="mcpStatus"><span class="dot-live"></span><span id="mcpStatusText" data-i18n="MCP 就绪">MCP 就绪</span></span>
+      <button class="ghost-btn" id="connectBtn"><svg><use href="#i-plug"/></svg><span data-i18n="接入 AI">接入 AI</span></button>
+    </div>
+  </header>
+
+  <div class="workspace" id="workspace">
+
+    <nav class="rail" data-i18n-aria="应用导航" aria-label="应用导航">
+      <button class="active" id="notesNav" data-rail="notes"><svg><use href="#i-note"/></svg><span data-i18n="笔记">笔记</span></button>
+      <button id="recentNav" data-rail="recent"><svg><use href="#i-clock"/></svg><span data-i18n="最近">最近</span></button>
+      <button id="searchNav" data-rail="search"><svg><use href="#i-search"/></svg><span data-i18n="搜索">搜索</span></button>
+      <button id="aiNav" data-rail="ai"><svg><use href="#i-sparkles"/></svg><span data-i18n="AI 写入">AI 写入</span></button>
+      <div class="bottom">
+        <button id="settingsNav" data-rail="settings"><svg><use href="#i-settings"/></svg><span data-i18n="设置">设置</span></button>
+        <button id="aboutNav" data-rail="about"><svg><use href="#i-info"/></svg><span data-i18n="关于">关于</span></button>
+      </div>
+    </nav>
+
+    <aside class="library" data-i18n-aria="笔记分类" aria-label="笔记分类">
+      <div class="libtitle" data-i18n="我的资料库">我的资料库</div>
+      <div id="smartNav"></div>
+      <div class="section"><span data-i18n="笔记本">笔记本</span> <button id="newFolder" data-i18n-aria="新建笔记本" data-i18n-title="新建笔记本" aria-label="新建笔记本" title="新建笔记本">＋</button></div>
+      <div id="folders"></div>
+      <div class="section"><span data-i18n="标签">标签</span> <button id="newTag" data-i18n-aria="新增标签" data-i18n-title="新增标签" aria-label="新增标签" title="新增标签">＋</button></div>
+      <div id="tags"></div>
+      <div class="trash"><button class="navrow" data-scope="trash"><svg><use href="#i-trash"/></svg><span data-i18n="回收站">回收站</span><span class="count" id="trashCount">0</span></button></div>
+    </aside>
+
+    <section class="list" data-i18n-aria="笔记列表" aria-label="笔记列表">
+      <div class="listhead">
+        <div class="titlebar">
+          <h1 id="listTitle" data-i18n="全部笔记">全部笔记</h1>
+          <button class="primary" id="newNote"><svg><use href="#i-plus"/></svg><span data-i18n="新建笔记">新建笔记</span></button>
+        </div>
+        <p class="sub" id="listSubtitle"></p>
+        <label class="search">
+          <svg><use href="#i-search"/></svg>
+          <input id="search" data-i18n-placeholder="搜索标题、正文、标签" data-i18n-aria="搜索笔记" placeholder="搜索标题、正文、标签" aria-label="搜索笔记">
+          <span class="key">⌘ K</span>
+        </label>
+      </div>
+      <div class="listtools">
+        <select id="sort" data-i18n-aria="笔记排序" aria-label="笔记排序">
+          <option value="updated" data-i18n="最近更新优先">最近更新优先</option>
+          <option value="created" data-i18n="最近创建优先">最近创建优先</option>
+          <option value="title" data-i18n="按标题排序">按标题排序</option>
+          <option value="words" data-i18n="按字数排序">按字数排序</option>
+        </select>
+        <button id="batchToggle" data-i18n="多选">多选</button>
+      </div>
+      <div class="batch hidden" id="batch">
+        <span id="selectionCount">已选 0 篇</span>
+        <select id="batchMove" data-i18n-aria="批量移动" aria-label="批量移动"><option value="" data-i18n="移动到…">移动到…</option></select>
+        <button id="batchPin" data-i18n="置顶">置顶</button>
+        <button id="batchDelete" data-i18n="删除">删除</button>
+        <button id="cancelBatch" data-i18n="取消">取消</button>
+      </div>
+      <div class="rows" id="rows"></div>
+    </section>
+
+    <main class="editor" data-i18n-aria="编辑器" aria-label="编辑器">
+      <header class="edithead">
+        <div class="breadcrumbs">
+          <button class="iconbtn" id="toggleLibrary" data-i18n-title="收起／展开分类导航" data-i18n-aria="收起或展开分类导航" title="收起／展开分类导航" aria-label="收起或展开分类导航"><svg><use href="#i-panel"/></svg></button>
+          <span id="crumb" data-i18n="未分类">未分类</span>
+          <span class="sep">/</span>
+          <span id="crumbTitle"></span>
+        </div>
+        <div class="editactions">
+          <span class="saved" id="saveState"></span>
+          <div class="modes">
+            <button class="active" id="editMode" data-i18n="编辑">编辑</button>
+            <button id="previewMode" data-i18n="预览">预览</button>
+          </div>
+          <button class="iconbtn" id="historyBtn" data-i18n-title="历史版本" data-i18n-aria="历史版本" title="历史版本" aria-label="历史版本"><svg><use href="#i-history"/></svg></button>
+          <button class="iconbtn" id="focus" data-i18n-title="专注写作" data-i18n-aria="专注写作" title="专注写作" aria-label="专注写作"><svg><use href="#i-expand"/></svg></button>
+        </div>
+      </header>
+
+      <div class="formatbar" id="formatbar">
+        <button data-insert="h2" data-i18n-title="标题" title="标题">H₂</button>
+        <button data-insert="bold" data-i18n-title="加粗" title="加粗"><b>B</b></button>
+        <button data-insert="italic" data-i18n-title="斜体" title="斜体"><i>I</i></button>
+        <span class="sep"></span>
+        <button data-insert="ul" data-i18n-title="无序列表" title="无序列表">☷</button>
+        <button data-insert="ol" data-i18n-title="有序列表" title="有序列表">☰</button>
+        <button data-insert="quote" data-i18n-title="引用" title="引用">❞</button>
+        <button data-insert="code" data-i18n-title="代码块" title="代码块">{ }</button>
+        <button data-insert="link" data-i18n-title="链接" title="链接">↗</button>
+        <button data-insert="table" data-i18n-title="表格" title="表格">▦</button>
+        <span class="sep"></span>
+        <button data-insert="hr" data-i18n-title="分割线" title="分割线">—</button>
+        <span class="spacer"></span>
+        <button class="iconbtn" id="pinNote" data-i18n-title="置顶／取消置顶" data-i18n-aria="置顶或取消置顶" title="置顶／取消置顶" aria-label="置顶或取消置顶"><svg><use href="#i-pin"/></svg></button>
+        <button class="iconbtn" id="exportNote" data-i18n-title="导出 Markdown" data-i18n-aria="导出 Markdown" title="导出 Markdown" aria-label="导出 Markdown"><svg><use href="#i-download"/></svg></button>
+        <button class="iconbtn" id="deleteNote" data-i18n-title="移到回收站" data-i18n-aria="移到回收站" title="移到回收站" aria-label="移到回收站"><svg><use href="#i-trash"/></svg></button>
+      </div>
+
+      <div class="editor-body" id="editorBody">
+      <article class="document" id="document">
+        <div class="docinner" id="doc">
+          <textarea class="doctitle" id="docTitle" rows="1" data-i18n-placeholder="未命名笔记" placeholder="未命名笔记" spellcheck="false"></textarea>
+          <div class="docmeta">
+            <span id="docNotebook" data-i18n="未分类">未分类</span>
+            <span>·</span>
+            <span id="docDate"></span>
+            <span class="badge-ai hidden" id="docAi"><svg><use href="#i-sparkles"/></svg>AI</span>
+            <span id="docTags"></span>
+            <span class="note-tag-control" id="noteTagControl">
+              <button type="button" class="add-note-tag" id="addNoteTag" aria-expanded="false" aria-controls="noteTagPicker" data-i18n="＋ 标签">＋ 标签</button>
+              <span class="note-tag-picker hidden" id="noteTagPicker" role="region" data-i18n-aria="设置笔记标签" aria-label="设置笔记标签">
+                <input type="text" id="noteTagSearch" maxlength="80" autocomplete="off" data-i18n-placeholder="搜索或新建标签" placeholder="搜索或新建标签" data-i18n-aria="搜索或新建标签" aria-label="搜索或新建标签">
+                <span class="note-tag-options" id="noteTagOptions"></span>
+                <span class="note-tag-hint" data-i18n="点击选择标签，输入新名称后按 Enter 创建。">点击选择标签，输入新名称后按 Enter 创建。</span>
+              </span>
+            </span>
+          </div>
+          <div class="body-wrap">
+            <textarea class="body" id="docBody" data-i18n-placeholder="从这里开始写…&#10;&#10;支持 Markdown：## 标题、- 列表、**重点**、> 引用、```代码块```" placeholder="从这里开始写…&#10;&#10;支持 Markdown：## 标题、- 列表、**重点**、> 引用、```代码块```" spellcheck="false"></textarea>
+            <div class="preview hidden" id="preview"></div>
+          </div>
+        </div>
+        <div class="editor-empty hidden" id="editorEmpty">
+          <div class="mark"><svg><use href="#i-note"/></svg></div>
+          <div data-i18n-html="empty.editor">选择一篇笔记，开始阅读或写作。<br>AI 也可以直接把文档写进这里。</div>
+          <button class="primary" id="emptyNew"><svg><use href="#i-plus"/></svg><span data-i18n="新建笔记">新建笔记</span></button>
+        </div>
+      </article>
+      <div class="editor-scrollbar hidden" id="editorScrollbar" aria-hidden="true">
+        <span class="editor-scroll-thumb" id="editorScrollThumb"></span>
+      </div>
+      </div>
+
+      <footer class="editorfooter">
+        <span id="wordCount"></span>
+        <span class="right"><span id="docId"></span><span data-i18n="让想法有处安放">让想法有处安放</span></span>
+      </footer>
+    </main>
+
+<!-- 设置作为工作区内的独立页面显示 -->
+<div class="settings-page hidden" id="settingsPage">
+  <section class="settings" role="region" aria-labelledby="settingsTitle">
+    <header class="settings-head">
+      <div>
+        <h2 id="settingsTitle" data-i18n="偏好设置">偏好设置</h2>
+        <p data-i18n="在此调整外观、语言、数据与 AI 接入行为，设置会保存在本地数据库。">在此调整外观、语言、数据与 AI 接入行为，设置会保存在本地数据库。</p>
+      </div>
+      <button class="iconbtn" id="settingsClose" data-i18n-aria="关闭" aria-label="关闭"><svg><use href="#i-x"/></svg></button>
+    </header>
+
+    <div class="settings-main">
+      <nav class="settings-tabs" id="settingsTabs" data-i18n-aria="设置" aria-label="设置">
+        <button class="active" data-settings-tab="general"><svg><use href="#i-gear"/></svg><span data-i18n="通用">通用</span></button>
+        <button data-settings-tab="data"><svg><use href="#i-book"/></svg><span data-i18n="数据与备份">数据与备份</span></button>
+        <button data-settings-tab="mcp"><svg><use href="#i-plug"/></svg><span data-i18n="MCP 与 AI">MCP 与 AI</span></button>
+        <button data-settings-tab="about"><svg><use href="#i-info"/></svg><span data-i18n="关于">关于</span></button>
+      </nav>
+
+      <div class="settings-panels" id="settingsPanels">
+
+        <!-- 通用 -->
+        <div class="settings-panel" data-panel="general">
+          <div class="set-section">
+            <h3 data-i18n="外观">外观</h3>
+            <p class="set-hint" data-i18n="选择喜欢的界面配色，设置会自动保存。">选择喜欢的界面配色，设置会自动保存。</p>
+            <div class="set-row">
+              <span id="themeLabel" data-i18n="外观主题">外观主题</span>
+              <div class="theme-swatches" id="themeSwatches" role="group" aria-labelledby="themeLabel">
+                <button type="button" class="theme-swatch" data-theme-choice="green" style="--swatch: #22c55e" aria-pressed="false" data-i18n-aria="草木绿" aria-label="草木绿" data-i18n-title="草木绿" title="草木绿"><span aria-hidden="true">✓</span></button>
+                <button type="button" class="theme-swatch" data-theme-choice="coral" style="--swatch: #e04747" aria-pressed="false" data-i18n-aria="珊瑚红" aria-label="珊瑚红" data-i18n-title="珊瑚红" title="珊瑚红"><span aria-hidden="true">✓</span></button>
+                <button type="button" class="theme-swatch" data-theme-choice="sunset" style="--swatch: #f86a3b" aria-pressed="false" data-i18n-aria="落日橙" aria-label="落日橙" data-i18n-title="落日橙" title="落日橙"><span aria-hidden="true">✓</span></button>
+                <button type="button" class="theme-swatch" data-theme-choice="blue" style="--swatch: #4387c5" aria-pressed="false" data-i18n-aria="雾蓝" aria-label="雾蓝" data-i18n-title="雾蓝" title="雾蓝"><span aria-hidden="true">✓</span></button>
+                <button type="button" class="theme-swatch" data-theme-choice="lavender" style="--swatch: #9470c7" aria-pressed="false" data-i18n-aria="薰衣草紫" aria-label="薰衣草紫" data-i18n-title="薰衣草紫" title="薰衣草紫"><span aria-hidden="true">✓</span></button>
+              </div>
+            </div>
+            <div class="set-row">
+              <label for="setLanguage" data-i18n="界面语言">界面语言</label>
+              <select id="setLanguage" data-setting="language">
+                <option value="zh-CN" data-i18n="简体中文">简体中文</option>
+                <option value="en-US">English</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <h3 data-i18n="编辑器默认值">编辑器默认值</h3>
+            <p class="set-hint" data-i18n="打开笔记时默认进入编辑或阅读视图。">打开笔记时默认进入编辑或阅读视图。</p>
+            <div class="set-row">
+              <label for="setEditorMode" data-i18n="默认视图">默认视图</label>
+              <select id="setEditorMode" data-setting="editorMode">
+                <option value="auto" data-i18n="自动（AI 笔记用阅读）">自动（AI 笔记用阅读）</option>
+                <option value="edit" data-i18n="编辑模式">编辑模式</option>
+                <option value="preview" data-i18n="阅读模式">阅读模式</option>
+              </select>
+            </div>
+            <div class="set-row">
+              <label for="setFontSize" data-i18n="正文字号">正文字号</label>
+              <select id="setFontSize" data-setting="fontSize">
+                <option value="small" data-i18n="小">小</option>
+                <option value="medium" data-i18n="中">中</option>
+                <option value="large" data-i18n="大">大</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <h3 data-i18n="常用快捷键">常用快捷键</h3>
+            <div class="shortcuts">
+              <div><kbd>⌘ K</kbd><span data-i18n="搜索笔记">搜索笔记</span></div>
+              <div><kbd>⌘ S</kbd><span data-i18n="保存当前笔记">保存当前笔记</span></div>
+              <div><kbd>⌘ N</kbd><span data-i18n="新建笔记">新建笔记</span></div>
+              <div><kbd>Esc</kbd><span data-i18n="退出专注模式">退出专注模式</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 数据与备份 -->
+        <div class="settings-panel hidden" data-panel="data">
+          <div class="set-section">
+            <h3 data-i18n="数据存放位置">数据存放位置</h3>
+            <p class="set-hint" data-i18n="数据以明文 Markdown 存放在本机 SQLite 文件中；复制该文件即为完整备份。">数据以明文 Markdown 存放在本机 SQLite 文件中；复制该文件即为完整备份。</p>
+            <div class="set-path"><span class="mono" id="setDbPath">—</span><button class="ghost-btn" id="copyDbPath" data-i18n="复制路径">复制路径</button></div>
+          </div>
+
+          <div class="set-section">
+            <h3 data-i18n="导出与备份">导出与备份</h3>
+            <p class="set-hint" data-i18n="导出为 Markdown 压缩包（.zip），每篇文件末尾附带分类和标签标记；支持直接导入 ZIP 或单篇 Markdown。">导出为 Markdown 压缩包（.zip），每篇文件末尾附带分类和标签标记；支持直接导入 ZIP 或单篇 Markdown。</p>
+            <div class="set-actions">
+              <button class="ghost-btn" id="exportMarkdown" data-i18n="导出 Markdown">导出 Markdown</button>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <h3 data-i18n="导入 Markdown">导入 Markdown</h3>
+            <p class="set-hint" data-i18n="选择 Markdown 或 ZIP 文件；本软件导出的文件会从末尾标记还原标题、分类和标签，无标记则按普通 Markdown 导入。">选择 Markdown 或 ZIP 文件；本软件导出的文件会从末尾标记还原标题、分类和标签，无标记则按普通 Markdown 导入。</p>
+            <div class="set-actions">
+              <input type="file" id="importFiles" class="hidden" accept=".md,.markdown,.txt,.zip,text/markdown,text/plain,application/zip" multiple>
+              <label for="importDuplicates" data-i18n="重复笔记">重复笔记</label><select id="importDuplicates"><option value="skip">跳过（默认）</option><option value="replace">覆盖已有笔记</option><option value="copy">保留两份</option></select>
+              <button class="ghost-btn" id="importPick" data-i18n="选择文件">选择文件</button>
+              <span class="set-note" id="importStatus"></span>
+            </div>
+          </div>
+
+          <div class="set-section danger">
+            <h3 data-i18n="危险操作">危险操作</h3>
+            <p class="set-hint" data-i18n="永久删除回收站里的全部笔记，此操作无法撤销。">永久删除回收站里的全部笔记，此操作无法撤销。</p>
+            <div class="set-actions">
+              <button class="danger-btn" id="emptyTrash" data-i18n="清空回收站">清空回收站</button>
+              <span class="set-note" id="trashTotal"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MCP 与 AI -->
+        <div class="settings-panel hidden" data-panel="mcp">
+          <div class="set-section">
+            <h3 data-i18n="服务">服务</h3>
+            <div class="kv">
+              <div><span data-i18n="状态">状态</span><b id="setStatus">—</b></div>
+              <div><span data-i18n="MCP 端点">MCP 端点</span><b class="mono" id="setEndpoint">—</b></div>
+              <div><span data-i18n="协议版本">协议版本</span><b class="mono" id="setProtocol">—</b></div>
+              <div><span data-i18n="工具">工具</span><b id="setToolCount">—</b></div>
+            </div>
+          </div>
+
+          <div class="set-section">
+            <h3 data-i18n="访问令牌">访问令牌</h3>
+            <p class="set-hint" data-i18n="打开「接入 AI」面板更换全局令牌，或复制端点与客户端配置。">打开「接入 AI」面板更换全局令牌，或复制端点与客户端配置。</p>
+            <div class="set-actions"><button class="ghost-btn" id="openConnect" data-i18n="打开接入面板">打开接入面板</button></div>
+          </div>
+
+          <div class="set-section">
+            <h3 data-i18n="AI 行为">AI 行为</h3>
+            <div class="set-row">
+              <label for="setAiNotebook" data-i18n="AI 写入默认笔记本">AI 写入默认笔记本</label>
+              <select id="setAiNotebook" data-setting="aiNotebook"></select>
+            </div>
+            <p class="set-hint" data-i18n="留空表示未分类；AI 保存文档时若未指定笔记本，会写入这里。">留空表示未分类；AI 保存文档时若未指定笔记本，会写入这里。</p>
+            <label class="check"><input type="checkbox" id="setAiBadge" data-setting="showAiBadge"><span data-i18n="在笔记列表里显示 AI 写入标记">在笔记列表里显示 AI 写入标记</span></label>
+          </div>
+        </div>
+
+        <!-- 关于 -->
+        <div class="settings-panel hidden" data-panel="about">
+          <div class="set-section">
+            <div class="about-copy" id="settingsAbout"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="settings-foot">
+      <span class="set-note" data-i18n="纯本地 · 无账号 · 无加密 · 支持 MCP">纯本地 · 无账号 · 无加密 · 支持 MCP</span>
+      <button class="ghost-btn" id="settingsReset" data-i18n="重置为默认">重置为默认</button>
+    </footer>
+  </section>
+</div>
+
+  </div>
+
+  <footer class="foot">
+    <span id="footInfo" data-i18n="本地明文存储 · 无加密 · 通过 MCP 与 AI 协作">本地明文存储 · 无加密 · 通过 MCP 与 AI 协作</span>
+    <span class="secondary" data-i18n-html="foot.shortcuts">⌘ K 搜索 · ⌘ S 保存 · ⌘ N 新建 · Esc 退出专注</span>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<!-- 导出备份进度：整库导出可能耗时数秒，用流式读取给出真实反馈。 -->
+<div class="overlay" id="exportOverlay" role="dialog" aria-modal="true" data-i18n-aria="导出备份" aria-label="导出备份">
+  <div class="dialog export-dialog">
+    <h2 data-i18n="正在导出备份">正在导出备份</h2>
+    <p class="dialog-hint" id="exportStage" data-i18n="正在读取笔记并打包…">正在读取笔记并打包…</p>
+    <div class="progress-track"><div class="progress-bar" id="exportBar"></div></div>
+    <div class="progress-meta"><span id="exportBytes">0 KB</span><span class="mono" id="exportPct">0%</span></div>
+    <div class="export-actions">
+      <button class="ghost-btn" id="exportCancel" data-i18n="取消">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 清空回收站进度：服务端逐篇独立事务，取消只停止后续删除。 -->
+<div class="overlay" id="trashOverlay" role="dialog" aria-modal="true" data-i18n-aria="清空回收站" aria-label="清空回收站">
+  <div class="dialog export-dialog">
+    <h2 data-i18n="正在清空回收站">正在清空回收站</h2>
+    <p class="dialog-hint" id="trashStage" data-i18n="正在读取回收站…">正在读取回收站…</p>
+    <div class="progress-track"><div class="progress-bar" id="trashBar"></div></div>
+    <div class="progress-meta"><span id="trashMeta">0 / 0 篇</span><span class="mono" id="trashPct">0%</span></div>
+    <div class="export-actions">
+      <button class="ghost-btn" id="trashCancel" data-i18n="取消">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 右键菜单：笔记本 / 标签 / 笔记列表共用同一个浮层 -->
+<div class="ctxmenu hidden" id="ctxMenu" role="menu" data-i18n-aria="操作菜单" aria-label="操作菜单">
+  <div class="ctxmenu-head" id="ctxHead"></div>
+  <div id="ctxItems"></div>
+</div>
+
+<!-- 通用小对话框：新建、重命名、移动、删除确认 -->
+<div class="overlay" id="formOverlay">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <h2 id="formTitle"></h2>
+    <p class="dialog-hint hidden" id="formHint"></p>
+    <label class="dialog-field hidden" id="formInputWrap">
+      <span id="formLabel"></span>
+      <input type="text" id="formInput" autocomplete="off" spellcheck="false">
+    </label>
+    <label class="dialog-field hidden" id="formSelectWrap">
+      <span id="formSelectLabel"></span>
+      <select id="formSelect"></select>
+    </label>
+    <p class="dialog-error hidden" id="formError"></p>
+    <div class="dialog-actions">
+      <button class="ghost-btn" id="formCancel" data-i18n="取消">取消</button>
+      <button class="primary" id="formConfirm" data-i18n="确定">确定</button>
+    </div>
+  </section>
+</div>
+
+<aside class="drawer" id="drawer" data-i18n-aria="接入 AI" aria-label="接入 AI">
+  <div class="drawer-head">
+    <div>
+      <h2 id="drawerTitle" data-i18n="接入 AI">接入 AI</h2>
+      <p id="drawerSub" data-i18n="把下面这个 MCP 端点填进任意支持 MCP 的客户端，AI 就能读写你的笔记。">把下面这个 MCP 端点填进任意支持 MCP 的客户端，AI 就能读写你的笔记。</p>
+    </div>
+    <button class="iconbtn" id="drawerClose" data-i18n-aria="关闭" aria-label="关闭"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <div class="drawer-body">
+    <div class="tabs" id="drawerTabs">
+      <button data-tab="connect" class="active" data-i18n="接入配置">接入配置</button>
+      <button data-tab="tools" data-i18n="工具">工具</button>
+      <button data-tab="activity" data-i18n="活动">活动</button>
+    </div>
+
+    <div id="panel-connect">
+      <div class="field">
+        <label data-i18n="MCP 端点（Streamable HTTP）">MCP 端点（Streamable HTTP）</label>
+        <div class="codebox" id="endpointBox">—<button class="copy" data-copy="endpoint"><span data-i18n="复制">复制</span></button></div>
+        <div class="hint" data-i18n="默认只监听本机，令牌校验开启；把地址换成局域网 IP 即可让同一网络中的设备接入。">默认只监听本机，令牌校验开启；把地址换成局域网 IP 即可让同一网络中的设备接入。</div>
+      </div>
+      <div class="field">
+        <div class="token-heading"><label data-i18n="访问令牌">访问令牌</label><button class="ghost-btn" id="rotateToken" data-i18n="更换">更换</button></div>
+        <div class="codebox" id="tokenBox">—<button class="copy" data-copy="token"><span data-i18n="复制">复制</span></button></div>
+        <div class="hint" data-i18n="全局共用一个访问令牌；更换后旧令牌立即失效，请更新客户端配置。">全局共用一个访问令牌；更换后旧令牌立即失效，请更新客户端配置。</div>
+      </div>
+
+      <div class="section-title"><span data-i18n="客户端配置">客户端配置</span></div>
+      <div class="tabs" id="clientTabs" style="margin-bottom:12px">
+        <button data-client="claude" class="active">Claude Code</button>
+        <button data-client="desktop">Claude Desktop</button>
+        <button data-client="codex">Codex</button>
+        <button data-client="json" data-i18n="通用 JSON">通用 JSON</button>
+      </div>
+      <div class="codebox" id="clientBox">—<button class="copy" data-copy="client"><span data-i18n="复制">复制</span></button></div>
+      <div class="hint" id="clientHint"></div>
+
+      <div class="section-title"><span data-i18n="它是怎么工作的">它是怎么工作的</span></div>
+      <div class="tool-item">
+        <div class="desc" style="margin-top:0" data-i18n-html="drawer.how">
+          网页界面和 MCP 服务共用同一个本地 SQLite 数据库。AI 通过 MCP 写入的笔记会立刻出现在左侧列表里
+          （带 <span class="badge-ai" style="vertical-align:1px"><svg><use href="#i-sparkles"/></svg>AI</span> 标记），
+          你可以在网页里继续编辑，也可以让 AI 追加内容。所有笔记都是纯 Markdown 明文。
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-tools" class="hidden">
+      <div class="section-title"><span data-i18n="工具">工具</span> <span id="toolCount"></span></div>
+      <div class="tool-list" id="toolList"></div>
+      <div class="section-title"><span data-i18n="资源">资源</span></div>
+      <div class="tool-list" id="resourceList"></div>
+      <div class="section-title"><span data-i18n="提示模板">提示模板</span></div>
+      <div class="tool-list" id="promptList"></div>
+    </div>
+
+    <div id="panel-activity" class="hidden">
+      <div class="section-title"><span data-i18n="最近活动">最近活动</span></div>
+      <div id="activityList"></div>
+    </div>
+  </div>
+</aside>
+
+<div class="overlay" id="drawerOverlay"></div>
+
+<div class="overlay" id="dialogOverlay">
+  <section class="dialog" style="background:var(--paper);border-radius:14px;width:min(560px,100%);padding:30px;box-shadow:var(--shadow);margin:auto">
+    <h2 style="margin:0 0 16px;font-size:20px" id="dialogTitle" data-i18n="关于 LockNote.ai">关于 LockNote.ai</h2>
+    <div id="dialogBody" style="font-size:13px;line-height:1.9;color:var(--muted)"></div>
+    <button class="primary" id="dialogClose" style="margin-top:14px" data-i18n="关闭">关闭</button>
+  </section>
+</div>
+
+<script src="/svg.js"></script>
+<script src="/markdown.js"></script>
+<script src="/diagrams.js"></script>
+<script src="/i18n.js"></script>
+<script src="/window-controls.js"></script>
+<script src="/workspace-controls.js"></script>
+<script src="/list-performance.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

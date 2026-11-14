@@ -1,0 +1,18 @@
+# 构建产物（wails build 输出，体积大，不入库）
+/build/bin/
+/locknote-mcp
+/dist/
+
+# 本地数据：明文笔记库，绝不提交
+*.db
+*.db-journal
+*.db-wal
+/data/
+/.dev-data/
+
+# macOS
+.DS_Store
+.workbuddy/
+docs/plans/
+outputs/
+build/

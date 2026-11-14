@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Locknote — AI 与笔记</title>
+  <defs>
+    <!-- 底板：暖米色，受光面偏上 -->
+    <linearGradient id="tile" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#FCF6E7"/>
+      <stop offset="0.42" stop-color="#F4ECD9"/>
+      <stop offset="1" stop-color="#E2D2B3"/>
+    </linearGradient>
+
+    <!-- 左上主光源 -->
+    <radialGradient id="bloom" cx="0.22" cy="0.08" r="0.9">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.52"/>
+      <stop offset="0.40" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 标记后方绿色光晕 -->
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4E9B78" stop-opacity="0.13"/>
+      <stop offset="0.55" stop-color="#4E9B78" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#4E9B78" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 玻璃斜向反光 -->
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="0.30" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="0.50" stop-color="#FFFFFF" stop-opacity="0.02"/>
+      <stop offset="0.72" stop-color="#FFFFFF" stop-opacity="0.00"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.16"/>
+    </linearGradient>
+
+    <!-- 玻璃边缘：上亮下暗 -->
+    <linearGradient id="edgeLight" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="0.36" stop-color="#FFFFFF" stop-opacity="0.30"/>
+      <stop offset="0.62" stop-color="#FFFFFF" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.26"/>
+    </linearGradient>
+    <linearGradient id="edgeShade" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#8A7855" stop-opacity="0"/>
+      <stop offset="0.55" stop-color="#8A7855" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#8A7855" stop-opacity="0.18"/>
+    </linearGradient>
+
+    <!-- 墨绿：受光到暗部 -->
+    <linearGradient id="ink" x1="0.16" y1="0" x2="0.78" y2="1">
+      <stop offset="0" stop-color="#4C8F72"/>
+      <stop offset="0.32" stop-color="#367256"/>
+      <stop offset="0.68" stop-color="#24503C"/>
+      <stop offset="1" stop-color="#1A4130"/>
+    </linearGradient>
+
+    <linearGradient id="inkHi" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.30"/>
+      <stop offset="0.24" stop-color="#FFFFFF" stop-opacity="0.07"/>
+      <stop offset="0.52" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="inkFloor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.62" stop-color="#9FE7C6" stop-opacity="0"/>
+      <stop offset="1" stop-color="#9FE7C6" stop-opacity="0.14"/>
+    </linearGradient>
+
+    <linearGradient id="inkSheen" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.20"/>
+      <stop offset="0.26" stop-color="#FFFFFF" stop-opacity="0.03"/>
+      <stop offset="0.46" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.66" stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- 内缘受光：上强下弱 -->
+    <linearGradient id="rim" x1="0.25" y1="0" x2="0.75" y2="1">
+      <stop offset="0" stop-color="#DFFBEC" stop-opacity="0.90"/>
+      <stop offset="0.30" stop-color="#CFEFE0" stop-opacity="0.55"/>
+      <stop offset="0.62" stop-color="#A8D8C2" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#8CC3AB" stop-opacity="0.30"/>
+    </linearGradient>
+
+    <filter id="blurXL" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="44"/>
+    </filter>
+    <filter id="blurL" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="blurS" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+
+    <!-- 标记落影：很轻，制造悬浮 -->
+    <filter id="markShadow" x="-25%" y="-25%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#17352A" flood-opacity="0.16"/>
+    </filter>
+
+    <clipPath id="tileClip">
+      <rect x="32" y="32" width="960" height="960" rx="210"/>
+    </clipPath>
+
+    <!-- 标记轮廓（所有形状必须为白色，亮度遮罩下黑色等于透明） -->
+    <mask id="glyph" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <g fill="#FFFFFF">
+        <g fill="none" stroke="#FFFFFF" stroke-width="38" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M512 202v-56"/>
+          <path d="M302 452v-93c0-102 82-157 210-157s210 55 210 157v93"/>
+        </g>
+        <circle cx="512" cy="112" r="38"/>
+        <circle cx="423" cy="355" r="36"/>
+        <circle cx="601" cy="355" r="36"/>
+        <path d="M184 423q10-9 26-4l257 71q21 6 21 31v348q0 27-25 18l-262-78q-27-8-27-34V448q0-18 10-25Z"/>
+        <path d="M840 423q-10-9-26-4l-257 71q-21 6-21 31v348q0 27 25 18l262-78q27-8 27-34V448q0-18-10-25Z"/>
+      </g>
+    </mask>
+  </defs>
+
+  <!-- ===== 玻璃底板 ===== -->
+  <g clip-path="url(#tileClip)">
+    <rect x="32" y="32" width="960" height="960" fill="url(#tile)"/>
+    <rect x="32" y="32" width="960" height="960" fill="url(#bloom)"/>
+
+    <!-- 底部暖色沉淀，制造厚度 -->
+    <ellipse cx="320" cy="985" rx="430" ry="215" fill="#C6A472" opacity="0.10" filter="url(#blurXL)"/>
+    <ellipse cx="805" cy="935" rx="320" ry="185" fill="#C6A472" opacity="0.07" filter="url(#blurXL)"/>
+
+    <!-- 标记后方光晕 -->
+    <ellipse cx="512" cy="545" rx="265" ry="265" fill="url(#halo)"/>
+
+    <!-- 玻璃斜扫 -->
+    <g opacity="0.45">
+      <path d="M32 480 L580 32 L980 32 L980 190 L170 992 L32 992 Z" fill="url(#sheen)"/>
+    </g>
+
+    <!-- 内侧暗边：底部厚度 -->
+    <rect x="35" y="35" width="954" height="954" rx="207" fill="none"
+          stroke="url(#edgeShade)" stroke-width="9" filter="url(#blurS)"/>
+  </g>
+
+  <!-- 外沿高光 -->
+  <rect x="33.5" y="33.5" width="957" height="957" rx="208.5" fill="none"
+        stroke="url(#edgeLight)" stroke-width="3"/>
+
+  <!-- ===== 标记 ===== -->
+  <!-- 落影 -->
+  <g filter="url(#markShadow)" opacity="0.9">
+    <g mask="url(#glyph)">
+      <rect width="1024" height="1024" fill="#17352A" opacity="0.35"/>
+    </g>
+  </g>
+
+  <g mask="url(#glyph)">
+    <rect width="1024" height="1024" fill="url(#ink)"/>
+    <rect width="1024" height="1024" fill="url(#inkFloor)"/>
+    <rect width="1024" height="1024" fill="url(#inkHi)"/>
+    <rect width="1024" height="1024" fill="url(#inkSheen)"/>
+
+    <!-- 内缘受光：同形状描边，被遮罩裁掉外侧一半 -->
+    <g opacity="0.75" filter="url(#blurS)">
+      <g fill="none" stroke="url(#rim)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M512 202v-56"/>
+        <path d="M302 452v-93c0-102 82-157 210-157s210 55 210 157v93"/>
+        <path d="M184 423q10-9 26-4l257 71q21 6 21 31v348q0 27-25 18l-262-78q-27-8-27-34V448q0-18 10-25Z"/>
+        <path d="M840 423q-10-9-26-4l-257 71q-21 6-21 31v348q0 27 25 18l262-78q27-8 27-34V448q0-18-10-25Z"/>
+      </g>
+      <g fill="none" stroke="url(#rim)" stroke-width="7">
+        <circle cx="512" cy="112" r="38"/>
+        <circle cx="423" cy="355" r="36"/>
+        <circle cx="601" cy="355" r="36"/>
+      </g>
+    </g>
+
+    <!-- 左上镜面高光：锁梁顶部 + 左页受光面 -->
+    <ellipse cx="360" cy="250" rx="200" ry="150" fill="#FFFFFF" opacity="0.10" filter="url(#blurL)"/>
+    <ellipse cx="330" cy="520" rx="190" ry="140" fill="#FFFFFF" opacity="0.075" filter="url(#blurL)"/>
+    <ellipse cx="700" cy="500" rx="150" ry="120" fill="#FFFFFF" opacity="0.035" filter="url(#blurL)"/>
+  </g>
+</svg>
