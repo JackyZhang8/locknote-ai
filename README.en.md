@@ -10,6 +10,12 @@ Locknote AI combines a desktop workspace, browser interface, and MCP server in o
 
 > Notes are stored in plaintext without database encryption. The product is called Locknote AI; existing commands, the Go module, and the default data directory still use locknote-mcp.
 
+## Origins and the Encrypted Edition
+
+Locknote AI is based on [Locknote, the encrypted edition](https://github.com/JackyZhang8/locknote). The original Locknote is an encrypted notes app for users who prioritize privacy and data protection and want to store their personal notes with encryption.
+
+This edition focuses on AI collaboration, with an integrated MCP server that lets AI read, organize, and update local notes. It stores data in plaintext SQLite. If encrypted note storage is your priority, take a look at [the encrypted Locknote edition](https://github.com/JackyZhang8/locknote).
+
 ## Features
 
 - **Markdown workspace**: editing and reading modes, notebooks, multiple tags, full-text search, pinned notes, and batch actions.

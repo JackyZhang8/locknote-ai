@@ -10,6 +10,12 @@ Locknote AI 将桌面工作区、浏览器界面和 MCP 服务集成到一个应
 
 > 笔记以明文存储，不提供数据库加密。产品名为 Locknote AI；现有命令、Go 模块及默认数据目录仍使用 locknote-mcp。
 
+## 项目来源与加密版本
+
+Locknote AI 基于 [Locknote 加密版本](https://github.com/JackyZhang8/locknote) 开发。原版 Locknote 是面向注重隐私与数据保护场景的加密笔记应用，适合希望加密保存个人笔记的用户。
+
+本版本侧重与 AI 协作，集成 MCP 服务，方便 AI 读取、整理和更新本地笔记，数据以明文 SQLite 存储。如果你更看重笔记的加密保护，可了解 [Locknote 加密版本](https://github.com/JackyZhang8/locknote)。
+
 ## 功能
 
 - **Markdown 工作区**：编辑与阅读模式、笔记本、多标签、全文搜索、置顶和批量操作。
