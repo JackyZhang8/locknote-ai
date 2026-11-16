@@ -44,6 +44,7 @@ export function startWorkspace() {
 
   var state = {
     scope: 'all',
+    searchActive: false,
     notes: [],
     total: 0,
     hasMore: false,
@@ -77,6 +78,7 @@ export function startWorkspace() {
   function api(path, opts) {
     opts = opts || {};
     var init = { method: opts.method || 'GET', headers: {} };
+    if (opts.signal) init.signal = opts.signal;
     if (opts.body !== undefined) {
       init.headers['Content-Type'] = 'application/json';
       init.body = JSON.stringify(opts.body);
@@ -721,9 +723,10 @@ export function startWorkspace() {
     if (trashBtn) trashBtn.classList.toggle('active', state.scope === 'trash');
     $('trashCount').textContent = st.trash || 0;
 
-    $('notesNav').classList.toggle('active', ['all', 'pinned', 'uncategorized', 'trash'].indexOf(state.scope) >= 0 && !settingsOpen());
-    $('recentNav').classList.toggle('active', state.scope === 'recent' && !settingsOpen());
-    $('aiNav').classList.toggle('active', state.scope === 'ai' && !settingsOpen());
+    $('searchNav').classList.toggle('active', state.searchActive && !settingsOpen());
+    $('notesNav').classList.toggle('active', !state.searchActive && ['all', 'pinned', 'uncategorized', 'trash'].indexOf(state.scope) >= 0 && !settingsOpen());
+    $('recentNav').classList.toggle('active', !state.searchActive && state.scope === 'recent' && !settingsOpen());
+    $('aiNav').classList.toggle('active', !state.searchActive && state.scope === 'ai' && !settingsOpen());
 
     var opts = tr('<option value="">移动到…</option><option value="__none">未分类</option>') +
       state.notebooks.map(function (nb) {
@@ -738,7 +741,7 @@ export function startWorkspace() {
   function noteRow(n) {
     var checked = state.chosen.has(n.id) ? 'checked' : '';
     var tags = (n.tags || []).slice(0, 2).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
-    var ai = (n.source !== 'web' && state.prefs.showAiBadge !== 'false')
+    var ai = (n.source !== 'web' && !(n.source || '').startsWith('plugin:') && state.prefs.showAiBadge !== 'false')
       ? '<span class="badge-ai">' + icon('sparkles') + 'AI</span>' : '';
     return '<div class="note ' + (state.selectedId === n.id ? 'active' : '') + '" role="button" tabindex="0" data-id="' + esc(n.id) + tr('" title="右击可置顶、移动或删除">') +
       '<div class="notetitle">' +
@@ -846,6 +849,7 @@ export function startWorkspace() {
   function discardSessionDraft(exceptId) {
     var note = state.note;
     if (!note || note.id === exceptId || !sessionDrafts.has(note.id) || hasUnsaved()) return;
+    if (window.LNHasPendingNoteChange && window.LNHasPendingNoteChange(note.id)) return;
     sessionDrafts.delete(note.id);
     if (note.title === '未命名笔记' && !note.content.trim() && !(note.tags || []).length && !note.pinned && note.version === 1) {
       return api('/notes/' + note.id + '/discard-placeholder', { method:'POST' }).then(function () { state.notes = state.notes.filter(function (item) { return item.id !== note.id; }); renderList(); loadMeta(); loadStats(); }).catch(function () {});
@@ -858,13 +862,13 @@ export function startWorkspace() {
     state.selectedId = id;
     state.preview = false;
     renderList();
-    api('/notes/' + encodeURIComponent(id)).then(function (note) {
+    return api('/notes/' + encodeURIComponent(id)).then(function (note) {
       state.note = note;
       // 默认视图可在设置里改：auto = AI 笔记/首屏用阅读，edit/preview 强制。
       var mode = state.prefs.editorMode || 'auto';
       if (mode === 'preview') state.preview = true;
       else if (mode === 'edit') state.preview = false;
-      else state.preview = (opts && opts.read) || note.source !== 'web';
+      else state.preview = (opts && opts.read) || (note.source !== 'web' && !(note.source || '').startsWith('plugin:'));
       renderEditor();
       renderLibrary();
     }).catch(function (err) {
@@ -893,6 +897,7 @@ export function startWorkspace() {
       $('saveState').textContent = '';
       $('editorScrollbar').classList.add('hidden');
       $('document').scrollTop = 0;
+      pluginEvent('note:selection', null);
       return;
     }
 
@@ -906,7 +911,7 @@ export function startWorkspace() {
 
     renderNoteTags();
 
-    var isAI = n.source !== 'web';
+    var isAI = n.source !== 'web' && !(n.source || '').startsWith('plugin:');
     $('docAi').classList.toggle('hidden', !isAI || state.prefs.showAiBadge === 'false');
     if (isAI) {
       window.LNReactUI.renderRegion($('docAi'), icon('sparkles') + 'AI' + (n.author ? ' · ' + esc(n.author) : ''));
@@ -922,6 +927,7 @@ export function startWorkspace() {
     queueEditorScrollbarSync();
     updateWordCount();
     $('saveState').textContent = readOnly ? tr('回收站内只读') : (state.note ? tr('已保存 · ') + dateLabel(n.updatedAt) : '');
+    pluginEvent('note:selection', currentPluginNote());
   }
 
   function applyMode() {
@@ -1044,6 +1050,7 @@ export function startWorkspace() {
       if (state.note && state.note.id === note.id) {
         state.note.tags = updated.tags;
         state.note.updatedAt = updated.updatedAt;
+        state.note.version = updated.version;
       }
       var row = state.notes.find(function (item) { return item.id === note.id; });
       if (row) row.tags = updated.tags;
@@ -1071,7 +1078,10 @@ export function startWorkspace() {
   }
 
   var saveInFlight = null;
+  var historyWriteInFlight = null;
+  var pendingPluginSource = null;
   function flushSave() {
+    if (historyWriteInFlight) return historyWriteInFlight.then(flushSave, flushSave);
     if (saveInFlight) return saveInFlight.then(function () { return flushSave(); });
     saveInFlight = performSave().then(function () { saveInFlight = null; }, function (err) { saveInFlight = null; throw err; });
     return saveInFlight;
@@ -1086,13 +1096,20 @@ export function startWorkspace() {
     if (!n || n.deletedAt) return Promise.resolve();
     var title = $('docTitle').value;
     var content = $('docBody').value;
-    if (title === n.title && content === n.content) return Promise.resolve();
+    if (title === n.title && content === n.content) { pendingPluginSource = null; return Promise.resolve(); }
 
     state.lastLocalEdit = Date.now();
     $('saveState').textContent = tr('保存中…');
 
-    return api('/notes/' + n.id, { method: 'PATCH', body: { title: title, content: content } })
+    var pluginEdit = pendingPluginSource;
+    if (pluginEdit && pluginEdit.noteId !== n.id) return Promise.reject(new Error('插件编辑所属笔记已变化，请先处理保存冲突'));
+    var pluginSource = pluginEdit && pluginEdit.pluginId;
+    var operation = pluginSource
+      ? pluginRequest(pluginSource, '/notes/' + encodeURIComponent(n.id), 'PATCH', { title: title, content: content, expectedVersion: pluginEdit.expectedVersion })
+      : api('/notes/' + n.id, { method: 'PATCH', body: { title: title, content: content } });
+    return operation
       .then(function (updated) {
+        if (pendingPluginSource === pluginEdit) pendingPluginSource = null;
         if (!state.note || state.note.id !== n.id) return;
         state.note = updated;
         n.title = updated.title;
@@ -1105,6 +1122,7 @@ export function startWorkspace() {
         if ($('docTitle').value === title) $('docTitle').value = updated.title;
         $('saveState').textContent = tr('已保存 · ') + dateLabel(updated.updatedAt);
         updateWordCount();
+        pluginEvent('note:change', { note: updated, source: updated.source, pluginId: pluginSource || undefined });
         // patch the row in place instead of a full reload
         var idx = state.notes.findIndex(function (x) { return x.id === updated.id; });
         if (idx >= 0) { state.notes[idx] = Object.assign({}, state.notes[idx], {
@@ -1338,8 +1356,10 @@ export function startWorkspace() {
   var formState = null;
 
   function closeForm() {
+    var previousForm = formState;
     $('formOverlay').classList.remove('show');
     formState = null;
+    if (previousForm && previousForm.onCancel) previousForm.onCancel();
   }
 
   // mode: 'input' (default) | 'select' | 'confirm'
@@ -1405,6 +1425,7 @@ export function startWorkspace() {
   }
 
   function showCtxMenu(head, items, x, y) {
+    items = items.filter(Boolean);
     if (typeof x === 'number') ctxPoint = { x: x, y: y };
     ctxItems = items;
     $('ctxHead').textContent = head || '';
@@ -1432,7 +1453,8 @@ export function startWorkspace() {
       { label: nb.pinned ? tr('取消置顶') : tr('置顶'), icon: 'pin', action: function () { toggleNotebookPin(nb); } },
       { label: tr('修改名称'), icon: 'pencil', action: function () { renameNotebook(nb); } },
       { sep: true },
-      { label: tr('删除'), icon: 'trash', danger: true, action: function () { deleteNotebook(nb); } }
+      { label: tr('删除'), icon: 'trash', danger: true, action: function () { deleteNotebook(nb); } },
+      pluginMenuAction('notebook', nb, x, y)
     ], x, y);
   }
 
@@ -1463,7 +1485,8 @@ export function startWorkspace() {
       { label: n.pinned ? tr('取消置顶') : tr('置顶'), icon: 'pin', action: function () { setNotePinned(n); } },
       { label: tr('移动'), icon: 'arrow', action: function () { openMoveMenu(id); } },
       { sep: true },
-      { label: tr('删除'), icon: 'trash', danger: true, action: function () { confirmDeleteNotes([n]); } }
+      { label: tr('删除'), icon: 'trash', danger: true, action: function () { confirmDeleteNotes([n]); } },
+      pluginMenuAction('note', n, x, y)
     ], x, y);
   }
 
@@ -1745,6 +1768,7 @@ export function startWorkspace() {
     });
 
     document.addEventListener('keydown', function (e) {
+      if (window.LNHistory && window.LNHistory.isOpen && window.LNHistory.isOpen()) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault(); closeSettings(); $('search').focus(); $('search').select(); return;
       }
@@ -1787,12 +1811,13 @@ export function startWorkspace() {
 
     if (window.runtime && window.runtime.EventsOn) {
       window.runtime.EventsOn('locknote:before-close', function () {
-        savedThen(function () { return Promise.resolve(discardSessionDraft()).then(function () { window.runtime.EventsEmit('locknote:close-ready'); }); });
+        savedThen(function () { return Promise.resolve(discardSessionDraft()).then(function () { pluginEvent('workspace:closing', {}); window.runtime.EventsEmit('locknote:close-ready'); }); });
       });
     }
     window.addEventListener('beforeunload', function (event) {
       if (hasUnsaved() || saveInFlight) { event.preventDefault(); event.returnValue = ''; }
     });
+    $('search').addEventListener('focus', function () { state.searchActive = true; renderLibrary(); });
     $('search').addEventListener('keydown', function (event) {
       if (event.isComposing) return;
       var notes = virtualModel.notes;
@@ -1920,6 +1945,13 @@ export function startWorkspace() {
       queueEditorScrollbarSync();
       updateWordCount();
       scheduleSave();
+      pluginEvent('editor:change', currentPluginNote());
+    });
+    $('docBody').addEventListener('select', function () { pluginEvent('editor:selection', currentPluginNote()); });
+    $('docBody').addEventListener('contextmenu', function (event) {
+      if (!window.LNPluginHasMenus || !window.LNPluginHasMenus('editor')) return;
+      event.preventDefault();
+      pluginContextMenu('editor', currentPluginNote(), event.clientX, event.clientY);
     });
     $('docBody').addEventListener('keydown', function (e) {
       if (e.key === 'Tab') {
@@ -1999,7 +2031,7 @@ export function startWorkspace() {
     $('notesNav').addEventListener('click', function () { navigate('all'); });
     $('recentNav').addEventListener('click', function () { navigate('recent'); });
     $('aiNav').addEventListener('click', function () { navigate('ai'); });
-    $('searchNav').addEventListener('click', function () { navigate('all'); $('search').focus(); });
+    $('searchNav').addEventListener('click', function () { navigate('all', true); $('search').focus(); });
     $('connectBtn').addEventListener('click', function () { openDrawer('connect'); });
     $('aboutNav').addEventListener('click', showAbout);
     $('settingsNav').addEventListener('click', function () { openSettings('general'); });
@@ -2068,12 +2100,14 @@ export function startWorkspace() {
     });
     var dragDepth = 0;
     document.addEventListener('dragenter', function (event) {
+      if (event.target.closest && event.target.closest('[data-plugin-drop]')) return;
       if (Array.prototype.indexOf.call(event.dataTransfer.types, 'Files') < 0) return;
       event.preventDefault(); dragDepth++; document.body.classList.add('file-drop-active');
     });
     document.addEventListener('dragover', function (event) { if (Array.prototype.indexOf.call(event.dataTransfer.types, 'Files') >= 0) event.preventDefault(); });
     document.addEventListener('dragleave', function () { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('file-drop-active'); } });
     document.addEventListener('drop', function (event) {
+      if (event.target.closest && event.target.closest('[data-plugin-drop]')) { dragDepth = 0; document.body.classList.remove('file-drop-active'); return; }
       if (!event.dataTransfer.files.length) return;
       event.preventDefault(); dragDepth = 0; document.body.classList.remove('file-drop-active');
       importNoteFiles(Array.prototype.slice.call(event.dataTransfer.files));
@@ -2138,11 +2172,12 @@ export function startWorkspace() {
       }).then(function () { $('importPick').disabled = false; importingFiles = false; });
   }
 
-  function navigate(scope) {
+  function navigate(scope, searchActive) {
     closeSettings();
-    if (saveInFlight || hasUnsaved()) return savedThen(function () { navigate(scope); });
+    if (saveInFlight || hasUnsaved()) return savedThen(function () { navigate(scope, searchActive); });
     discardSessionDraft();
     state.scope = scope;
+    state.searchActive = !!searchActive;
     state.multi = false;
     state.chosen.clear();
     state.query = '';
@@ -2180,57 +2215,56 @@ export function startWorkspace() {
   }
   function closeDialog() { $('dialogOverlay').classList.remove('show'); }
 
-  function previewRevision(noteId, revisionId) {
-    savedThen(function () {
-      return api('/notes/' + noteId + '/revisions/' + revisionId).then(function (res) {
-        if (!state.note || state.note.id !== noteId) return;
-        var current = state.note;
-        var oldLines = res.content.split(String.fromCharCode(10));
-        var newLines = current.content.split(String.fromCharCode(10));
-        var prefix = 0, suffix = 0;
-        while (prefix < oldLines.length && prefix < newLines.length && oldLines[prefix] === newLines[prefix]) prefix++;
-        while (suffix < oldLines.length-prefix && suffix < newLines.length-prefix && oldLines[oldLines.length-1-suffix] === newLines[newLines.length-1-suffix]) suffix++;
-        var removed = oldLines.slice(prefix, oldLines.length-suffix);
-        var added = newLines.slice(prefix, newLines.length-suffix);
-        $('dialogTitle').textContent = tr('恢复前对比');
-        window.LNReactUI.renderRegion($('dialogBody'), '<p>' + esc(tr('历史标题：') + res.revision.title) + '<br>' + esc(tr('当前标题：') + current.title) + '</p>' +
-          '<p>' + esc(tr('历史字数：') + res.revision.words + ' · ' + tr('当前字数：') + current.wordCount) + '</p>' +
-          '<div class="revision-compare"><section><b>' + tr('历史版本') + '</b><pre>' + esc(res.content) + '</pre></section><section><b>' + tr('当前版本') + '</b><pre>' + esc(current.content) + '</pre></section></div>' +
-          '<details><summary>' + esc(tr('变化行：') + removed.length + ' → ' + added.length) + '</summary><pre class="revision-diff-old">' + esc(removed.map(function (line) { return '- ' + line; }).join(String.fromCharCode(10))) + '</pre><pre class="revision-diff-new">' + esc(added.map(function (line) { return '+ ' + line; }).join(String.fromCharCode(10))) + '</pre></details>' +
-          '<button class="primary" id="confirmRevisionRestore">' + tr('确认恢复此版本') + '</button>');
-        $('confirmRevisionRestore').addEventListener('click', function () {
-          this.disabled = true;
-          api('/notes/' + noteId + '/revisions/' + revisionId + '/restore', { method:'POST' }).then(function (note) {
-            if (state.note && state.note.id === noteId) {state.note=note;renderEditor();}
-            closeDialog();toast(tr('已恢复到该版本'));return refreshAll({keepSelection:true});
-          }).catch(function (err) {toast(err.message);$('confirmRevisionRestore').disabled=false;});
-        });
-      });
-    });
-  }
   function showHistory() {
     if (!state.note) { toast(tr('请先选择一篇笔记')); return; }
-    api('/notes/' + state.note.id + '/revisions').then(function (res) {
-      var revs = res.revisions || [];
-      $('dialogTitle').textContent = tr('历史版本 · ') + (state.note.title || '');
-      if (!revs.length) {
-        window.LNReactUI.renderRegion($('dialogBody'), tr('<p style="margin:0">还没有历史版本。有效内容变更会保留恢复点，连续编辑会合并。</p>'));
-      } else {
-        window.LNReactUI.renderRegion($('dialogBody'), revs.map(function (r) {
-          return '<div class="token-row" style="margin-bottom:6px">' +
-            '<span class="mono">v' + r.version + '</span>' +
-            '<span>' + esc(r.title || tr('未命名')) + ' · Δ ' + ((state.note.wordCount - r.words >= 0 ? '+' : '') + (state.note.wordCount - r.words)) + ' · ' + r.words + tr(' 字</span>') +
-            '<span class="when">' + esc(fullDate(r.createdAt)) + '</span>' +
-            '<button class="ghost-btn" data-rev="' + esc(r.id) + tr('" style="padding:3px 8px;font-size:10.5px">对比／恢复</button></div>');
-        }).join(''));
-        Array.prototype.forEach.call($('dialogBody').querySelectorAll('[data-rev]'), function (btn) {
-          btn.addEventListener('click', function () {
-            previewRevision(state.note.id, btn.dataset.rev);
-          });
-        });
+    savedThen(function () {
+      var noteId = state.note.id;
+      function replaceCurrent(note, previous) {
+        if (state.note && state.note.id === noteId) {
+          // Do not regress a more recent notification or overwrite input typed after request.
+          if (state.note.version <= note.version) {
+            var title = $('docTitle').value, body = $('docBody').value;
+            state.note = note;
+            if (title === previous.title && body === previous.content) renderEditor();
+            else {
+              if (title === previous.title) $('docTitle').value = note.title;
+              if (body === previous.content) $('docBody').value = note.content;
+              scheduleSave();
+            }
+          }
+        }
+        return refreshAll({ keepSelection: true }).then(function () { return note; });
       }
-      $('dialogOverlay').classList.add('show');
-    }).catch(function (err) { toast(err.message); });
+      function checkEditor(expectedVersion) {
+        if (!state.note || state.note.id !== noteId || hasUnsaved() || saveInFlight || historyWriteInFlight || state.note.version !== expectedVersion) {
+          throw new Error(tr('笔记已变化，请关闭对比并重新打开后操作'));
+        }
+      }
+      function writeHistory(path, options, previous) {
+        historyWriteInFlight = api(path, options).then(function (note) { return replaceCurrent(note, previous); }).then(function (note) {
+          historyWriteInFlight = null;
+          return note;
+        }, function (error) {
+          historyWriteInFlight = null;
+          throw error;
+        });
+        return historyWriteInFlight;
+      }
+      window.LNHistory.open({
+        note: Object.assign({}, state.note),
+        request: api,
+        restore: function (revisionId, expectedVersion) {
+          checkEditor(expectedVersion);
+          var previous = currentPluginNote();
+          return writeHistory('/notes/' + noteId + '/revisions/' + revisionId + '/restore', { method: 'POST', body: { expectedVersion: expectedVersion } }, previous);
+        },
+        undo: function (before, expectedVersion) {
+          checkEditor(expectedVersion);
+          var previous = currentPluginNote();
+          return writeHistory('/notes/' + noteId + '?checkpoint=true', { method: 'PATCH', body: { title: before.title, content: before.content, expectedVersion: expectedVersion } }, previous);
+        }
+      });
+    });
   }
 
   /* --------------------------------------------------------------- events */
@@ -2240,6 +2274,7 @@ export function startWorkspace() {
   var changedNoteIds = new Set();
   var importedNotesChanged = false;
   var latestAIChange = null;
+  var pendingPluginChanges = new Map();
   var queueChangeRefresh = window.LNListPerformance.createQueue(function () {
     // Preserve notifications while typing; retry after the save has settled.
     if (state.saveTimer || saveInFlight || hasUnsaved()) {
@@ -2249,6 +2284,7 @@ export function startWorkspace() {
     var ids = changedNoteIds;
     var imported = importedNotesChanged;
     var aiChange = latestAIChange;
+    var pluginChanges = Array.from(pendingPluginChanges.values());
     latestAIChange = null;
     if (aiChange) toast(tr('AI 写入《') + aiChange.title + tr('》'), { ai: true });
     changedNoteIds = new Set();
@@ -2263,18 +2299,26 @@ export function startWorkspace() {
         });
       }
     }).catch(function (err) { toast(err.message); }).then(function () {
+      pluginChanges.forEach(function (change) {
+        if (pendingPluginChanges.get(change.noteId) === change) {
+          pendingPluginChanges.delete(change.noteId);
+          pluginEvent('note:change', change);
+        }
+      });
+    }).then(function () {
       if ($('drawer').classList.contains('show') && state.tab === 'activity') return loadActivity();
     });
   });
 
   function handleChange(data) {
+    if (data.noteId) pendingPluginChanges.set(data.noteId, data);
     if (data.type === 'token.changed') { loadSystem(); return; }
     if (data.type === 'settings.changed') {
       loadSettings(true).then(function () { refreshLanguage(); });
       return;
     }
     if (data.noteId) changedNoteIds.add(data.noteId);
-    if (data.noteId && data.source && data.source !== 'web') latestAIChange = data;
+    if (data.noteId && data.source && data.source !== 'web' && !data.source.startsWith('plugin:')) latestAIChange = data;
     if (data.type === 'notes.imported') importedNotesChanged = true;
     queueChangeRefresh();
   }
@@ -2301,6 +2345,146 @@ export function startWorkspace() {
       $('mcpStatus').classList.add('offline');
     };
   }
+
+  /* ---------------------------------------------------------- plugin host */
+
+  var recentPluginChanges = new Map();
+  function pluginEvent(name, payload) {
+    if (name === 'note:change' && payload) {
+      var noteId = payload.noteId || (payload.note && payload.note.id);
+      var version = payload.version || (payload.note && payload.note.version);
+      if (noteId && Number.isInteger(version)) {
+        var key = JSON.stringify([noteId, version, payload.type || 'note.updated', payload.source || '']);
+        if (recentPluginChanges.has(key)) return;
+        recentPluginChanges.set(key, true);
+        if (recentPluginChanges.size > 512) recentPluginChanges.delete(recentPluginChanges.keys().next().value);
+      }
+    }
+    if (window.dispatchEvent && typeof CustomEvent !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('locknote:plugin-event', { detail: { name: name, payload: payload } }));
+    }
+  }
+  function currentPluginNote() {
+    if (!state.note || state.note.id !== state.selectedId) return null;
+    return Object.assign({}, state.note, {
+      title: $('docTitle').value, content: $('docBody').value,
+      tags: (state.note.tags || []).slice(), unsaved: hasUnsaved()
+    });
+  }
+  function pluginRequest(pluginId, path, method, body) {
+    if (!window.LNPluginTransport) return Promise.reject(new Error('插件仅在桌面应用中可用'));
+    return window.LNPluginTransport.request(pluginId, path, method || 'GET', body);
+  }
+  function pluginContextMenu(kind, payload, x, y) {
+    if (window.dispatchEvent && typeof CustomEvent !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('locknote:plugin-context', {
+        detail: { context: kind, payload: payload, x: x, y: y }
+      }));
+    }
+  }
+  function pluginMenuAction(kind, payload, x, y) {
+    if (!window.LNPluginHasMenus || !window.LNPluginHasMenus(kind)) return null;
+    return { label: tr('插件操作'), icon: 'sparkles', action: function () {
+      closeCtxMenu(); setTimeout(function () { pluginContextMenu(kind, payload, x, y); }, 0);
+    } };
+  }
+  async function pluginEditSelection(text, pluginId, insert) {
+    if (typeof text !== 'string' || text.length > 2 * 1024 * 1024) throw new Error('插件插入内容过大或格式无效');
+    if (!state.note || state.note.deletedAt) throw new Error('请先打开可编辑的笔记');
+    var id = state.note.id;
+    await flushSave();
+    if (!state.note || state.note.id !== id) throw new Error('笔记已切换，请重试');
+    var ta = $('docBody');
+    state.preview = false; applyMode(); ta.focus();
+    if (insert) ta.selectionEnd = ta.selectionStart;
+    pendingPluginSource = { pluginId: pluginId, noteId: id, expectedVersion: state.note.version };
+    var inserted = false;
+    if (document.execCommand) inserted = document.execCommand('insertText', false, text);
+    if (!inserted) {
+      ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, 'end');
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    autosize(ta); updateWordCount();
+    await flushSave();
+    pluginEvent('editor:change', currentPluginNote());
+  }
+
+  window.LNPluginHost = {
+    notes: {
+      current: async function () { return currentPluginNote(); },
+      list: async function (query, pluginId) {
+        var params = new URLSearchParams();
+        Object.keys(query || {}).forEach(function (key) { params.set(key, String(query[key])); });
+        return pluginRequest(pluginId, '/notes?' + params.toString());
+      },
+      get: function (id, pluginId) { return pluginRequest(pluginId, '/notes/' + encodeURIComponent(id)); },
+      create: async function (input, pluginId) {
+        var note = await pluginRequest(pluginId, '/notes', 'POST', input);
+        try { await refreshAll({ keepSelection: true }); } catch (error) { toast(tr('笔记已保存，列表刷新失败，请重新选择笔记')); }
+        pluginEvent('note:change', { type: 'note.created', note: note, source: 'plugin:' + pluginId, pluginId: pluginId });
+        return note;
+      },
+      update: async function (id, patch, pluginId) {
+        if (state.note && state.note.id === id && (hasUnsaved() || saveInFlight)) {
+          throw new Error('当前笔记有未保存编辑，请先保存后重试 / unsaved editor changes');
+        }
+        if (!patch || !Number.isInteger(patch.expectedVersion) || patch.expectedVersion < 1) {
+          throw new Error('更新笔记必须提供读取时的 expectedVersion');
+        }
+        if (state.note && state.note.id === id && state.note.deletedAt) throw new Error('回收站笔记为只读');
+        var previous = state.note && state.note.id === id ? currentPluginNote() : null;
+        var note = await pluginRequest(pluginId, '/notes/' + encodeURIComponent(id), 'PATCH', patch);
+        if (state.note && state.note.id === id) {
+          var unchanged = !previous || ($('docTitle').value === previous.title && $('docBody').value === previous.content);
+          state.note = note;
+          if (unchanged) { try { renderEditor(); } catch (error) { toast(tr('笔记已保存，界面刷新失败，请重新选择笔记')); } }
+          else { scheduleSave(); toast(tr('插件已更新笔记，保留你正在编辑的内容')); }
+        }
+        try { await refreshAll({ keepSelection: true }); } catch (error) { toast(tr('笔记已保存，列表刷新失败，请重新选择笔记')); }
+        pluginEvent('note:change', { note: note, source: 'plugin:' + pluginId, pluginId: pluginId });
+        return note;
+      }
+    },
+    editor: {
+      getSelection: async function () {
+        var ta = $('docBody');
+        return { noteId: state.note ? state.note.id : null, start: ta.selectionStart || 0, end: ta.selectionEnd || 0,
+          text: ta.value.slice(ta.selectionStart || 0, ta.selectionEnd || 0) };
+      },
+      replaceSelection: function (text, pluginId) { return pluginEditSelection(text, pluginId, false); },
+      insertText: function (text, pluginId) { return pluginEditSelection(text, pluginId, true); }
+    },
+    workspace: {
+      openNote: async function (id) {
+        await flushSave();
+        closeSettings();
+        if (window.dispatchEvent && typeof Event !== 'undefined') window.dispatchEvent(new Event('locknote:plugin-show-note'));
+        return selectNote(id);
+      },
+      revealLine: function (line) {
+        if (!state.note) return;
+        var ta = $('docBody');
+        if (window.dispatchEvent && typeof Event !== 'undefined') window.dispatchEvent(new Event('locknote:plugin-show-note'));
+        state.preview = false; applyMode();
+        var lines = ta.value.split('\n');
+        var index = Math.max(0, Math.min(lines.length - 1, Math.floor(line) - 1));
+        var offset = lines.slice(0, index).reduce(function (sum, value) { return sum + value.length + 1; }, 0);
+        ta.focus(); ta.setSelectionRange(offset, offset + (lines[index] || '').length);
+        $('document').scrollTop = Math.max(0, index * parseFloat(getComputedStyle(ta).lineHeight || '24'));
+      }
+    },
+    ui: {
+      notify: function (message) { toast(String(message)); },
+      confirm: function (message) {
+        return new Promise(function (resolve) {
+          openForm({ title: tr('插件确认'), hint: String(message), mode: 'confirm',
+            onCancel: function () { resolve(false); },
+            onSubmit: function () { resolve(true); closeForm(); }
+          });
+        });
+      }
+    }
+  };
 
   /* ----------------------------------------------------------------- init */
 
@@ -2329,9 +2513,11 @@ export function startWorkspace() {
       if (noteId) selectNote(noteId);
       connectEvents();
       finishBoot();
+      pluginEvent('workspace:ready', {});
     }).catch(function (err) {
       finishBoot();
       toast(tr('加载失败：') + err.message);
+      pluginEvent('workspace:ready', {});
     });
   }
 

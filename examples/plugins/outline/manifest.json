@@ -1,0 +1,60 @@
+{
+  "id": "dev.locknote.outline",
+  "name": "笔记大纲",
+  "version": "0.1.1",
+  "apiVersion": 1,
+  "minAppVersion": "0.1.0",
+  "entry": "main.js",
+  "styles": "styles.css",
+  "description": "开发示例：标题大纲、行定位、侧栏视图、设置和主题同步。",
+  "author": "Locknote AI contributors",
+  "capabilities": [
+    "ui.sidebar",
+    "notes.readCurrent",
+    "editor.read"
+  ],
+  "activationEvents": [
+    "onCommand:open"
+  ],
+  "commands": [
+    {
+      "id": "open",
+      "title": "打开笔记大纲",
+      "hotkey": "Mod+Alt+O",
+      "titleKey": "commands.open"
+    }
+  ],
+  "defaultLocale": "en",
+  "locales": {
+    "zh": {
+      "name": "笔记大纲",
+      "description": "开发示例：标题大纲、行定位、侧栏视图、设置和主题同步。",
+      "selectNote": "请选择一篇笔记",
+      "headingsLabel": "笔记标题",
+      "emptyOutline": "暂无 Markdown 标题",
+      "outlineTitle": "笔记大纲",
+      "openOutline": "打开笔记大纲",
+      "outlineButton": "打开大纲",
+      "outlineMenu": "查看当前笔记大纲",
+      "outlineSettings": "大纲设置",
+      "headingDepth": "标题层级",
+      "label.outline": "大纲",
+      "commands.open": "打开笔记大纲"
+    },
+    "en": {
+      "name": "Note Outline",
+      "description": "Development example: a right-side heading outline with navigation and settings.",
+      "selectNote": "Select a note",
+      "headingsLabel": "Note headings",
+      "emptyOutline": "No Markdown headings",
+      "outlineTitle": "Outline",
+      "openOutline": "Open outline",
+      "outlineButton": "Open outline",
+      "outlineMenu": "Outline",
+      "outlineSettings": "Outline settings",
+      "headingDepth": "Heading depth ",
+      "label.outline": "Outline",
+      "commands.open": "Open outline"
+    }
+  }
+}

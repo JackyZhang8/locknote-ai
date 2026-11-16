@@ -1,0 +1,6 @@
+export function offsetsFor(ids:number[],heights:Map<number,number>,fallback=28){const result=[0];for(const id of ids)result.push(result[result.length-1]+(heights.get(id)||fallback));return result}
+export function rowAt(offsets:number[],position:number){let low=0,high=Math.max(0,offsets.length-1);while(low<high){const middle=(low+high)>>1;if(offsets[middle+1]<=position)low=middle+1;else high=middle}return low}
+export interface Anchor { id:number;offset:number }
+interface AnchoredRow { id:number;folded?:number }
+export function captureAnchor(rows:AnchoredRow[],offsets:number[],position:number):Anchor|null {if(!rows.length)return null;const index=Math.min(rows.length-1,rowAt(offsets,position));return {id:rows[index].id,offset:Math.max(0,position-offsets[index])}}
+export function restoreAnchor(rows:AnchoredRow[],offsets:number[],anchor:Anchor|null):number {if(!anchor||!rows.length)return 0;let index=rows.findIndex(row=>row.id===anchor.id||(row.folded&&anchor.id>=row.id&&anchor.id<row.id+row.folded));if(index<0){index=rows.findIndex(row=>row.id>anchor.id);if(index<0)index=rows.length-1}return Math.max(0,offsets[index]+Math.min(anchor.offset,Math.max(0,offsets[index+1]-offsets[index]-1)))}

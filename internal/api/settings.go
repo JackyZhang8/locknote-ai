@@ -83,7 +83,7 @@ func (s *Server) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		}
 		changed[key] = value
 	}
-	s.hub.Publish(Event{Type: "settings.changed", Title: "settings"})
+	s.publishEvent(Event{Type: "settings.changed", Title: "settings"})
 	writeJSON(w, http.StatusOK, map[string]any{"settings": s.readSettings(), "changed": changed})
 }
 
@@ -281,7 +281,7 @@ func (s *Server) handleImportMarkdown(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if created+updated > 0 {
-		s.hub.Publish(Event{Type: "notes.imported"})
+		s.publishEvent(Event{Type: "notes.imported"})
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"created": created, "updated": updated, "skipped": skipped, "errors": errs,
@@ -317,7 +317,7 @@ func (s *Server) handleEmptyTrash(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	s.hub.Publish(Event{Type: "notes.batch", Title: "trash.emptied"})
+	s.publishEvent(Event{Type: "notes.batch", Title: "trash.emptied"})
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "deleted": n})
 }
 
@@ -399,7 +399,7 @@ func (s *Server) handleEmptyTrashStream(w http.ResponseWriter, r *http.Request) 
 	}
 	state := s.emptyTrashProgress(r.Context(), ids, emit)
 	if state.Deleted > 0 {
-		s.hub.Publish(Event{Type: "notes.batch", Title: "trash.emptied"})
+		s.publishEvent(Event{Type: "notes.batch", Title: "trash.emptied"})
 	}
 	// Best-effort terminal line: on cancellation the client may already be gone.
 	emit(state)

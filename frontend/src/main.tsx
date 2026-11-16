@@ -10,8 +10,12 @@ import './runtime/list-performance.js'
 import './runtime/window-controls.js'
 import { startWorkspaceControls } from './workspace-controls.js'
 import { startWorkspace } from './controller.js'
+import { installPluginIntegration } from './plugins/integration'
+import { installHistory } from './history/bridge'
 
 installReactRendering()
+installHistory()
+installPluginIntegration()
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing application root')
 

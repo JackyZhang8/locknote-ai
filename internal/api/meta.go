@@ -38,7 +38,7 @@ func (s *Server) handleCreateNotebook(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, nb)
 		return
 	}
-	s.hub.Publish(Event{Type: "notebook.changed", Title: nb.Name})
+	s.publishEvent(Event{Type: "notebook.changed", Title: nb.Name})
 	writeJSON(w, http.StatusCreated, nb)
 }
 
@@ -63,7 +63,7 @@ func (s *Server) handleUpdateNotebook(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	s.hub.Publish(Event{Type: "notebook.changed", Title: nb.Name})
+	s.publishEvent(Event{Type: "notebook.changed", Title: nb.Name})
 	writeJSON(w, http.StatusOK, nb)
 }
 
@@ -72,7 +72,7 @@ func (s *Server) handleDeleteNotebook(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "笔记本不存在")
 		return
 	}
-	s.hub.Publish(Event{Type: "notebook.changed"})
+	s.publishEvent(Event{Type: "notebook.changed"})
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
@@ -99,7 +99,7 @@ func (s *Server) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	s.hub.Publish(Event{Type: "tag.changed", Title: tag.Name})
+	s.publishEvent(Event{Type: "tag.changed", Title: tag.Name})
 	writeJSON(w, http.StatusCreated, tag)
 }
 
@@ -122,7 +122,7 @@ func (s *Server) handleUpdateTag(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	s.hub.Publish(Event{Type: "tag.changed", Title: tag.Name})
+	s.publishEvent(Event{Type: "tag.changed", Title: tag.Name})
 	writeJSON(w, http.StatusOK, tag)
 }
 
@@ -131,6 +131,6 @@ func (s *Server) handleDeleteTag(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "标签不存在")
 		return
 	}
-	s.hub.Publish(Event{Type: "tag.changed"})
+	s.publishEvent(Event{Type: "tag.changed"})
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }

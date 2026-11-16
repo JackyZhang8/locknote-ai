@@ -1,0 +1,5 @@
+.dev-note-checker { padding: 14px; color: var(--ink); }
+.dev-note-checker h3 { font-size: 14px; margin: 0 0 8px; }
+.dev-note-checker p { color: var(--muted); font-size: 12px; }
+.dev-note-checker button { display: block; padding: 6px 9px; border-radius: 5px; margin: 4px 0; text-align: left; }
+.dev-note-checker button:hover { background: var(--light); }

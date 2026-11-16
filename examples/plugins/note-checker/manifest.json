@@ -1,0 +1,94 @@
+{
+  "id": "dev.locknote.note-checker",
+  "name": "笔记检查",
+  "version": "0.1.1",
+  "apiVersion": 1,
+  "minAppVersion": "0.1.0",
+  "entry": "main.js",
+  "styles": "styles.css",
+  "description": "开发示例：底部面板、工作区视图、Worker 检查与版本保护的格式整理。",
+  "author": "Locknote AI contributors",
+  "capabilities": [
+    "ui.panel",
+    "notes.readCurrent",
+    "notes.updateCurrent"
+  ],
+  "activationEvents": [
+    "onCommand:open"
+  ],
+  "commands": [
+    {
+      "id": "open",
+      "title": "打开笔记检查",
+      "hotkey": "Mod+Alt+L",
+      "titleKey": "commands.open"
+    },
+    {
+      "id": "report",
+      "title": "打开检查工作区",
+      "titleKey": "commands.report"
+    },
+    {
+      "id": "trim",
+      "title": "清理行尾空格",
+      "titleKey": "commands.trim"
+    }
+  ],
+  "defaultLocale": "en",
+  "locales": {
+    "zh": {
+      "name": "笔记检查",
+      "description": "开发示例：底部面板、工作区视图、Worker 检查与版本保护的格式整理。",
+      "sizeLimit": "示例最多检查 500,000 字符",
+      "trailingWhitespace": "行尾空格",
+      "todoMarker": "待办标记",
+      "selectNote": "请选择笔记",
+      "checkAgain": "重新检查",
+      "selectNoteFirst": "请先选择笔记",
+      "saveEditsFirst": "请先保存当前编辑",
+      "nothingToChange": "无需修改",
+      "confirmTrim": "清理行尾空格？Markdown 的行尾双空格可能表示换行。本次修改会保留历史版本。",
+      "trimmed": "已清理行尾空格",
+      "checkerTitle": "笔记检查",
+      "reportTitle": "检查工作区",
+      "openChecker": "打开笔记检查",
+      "openReport": "打开检查工作区",
+      "trimCommand": "清理行尾空格",
+      "checkerStatus": "检查器",
+      "trimMenu": "清理当前笔记行尾空格",
+      "label.check": "检查",
+      "label.ready": "检查器就绪",
+      "commands.open": "打开笔记检查",
+      "commands.report": "打开检查工作区",
+      "commands.trim": "清理行尾空格",
+      "issues": "检查结果：{count}（最多 200 项）"
+    },
+    "en": {
+      "name": "Note Checker",
+      "description": "Development example: note checks, a bottom panel, background Worker and revision-safe cleanup.",
+      "sizeLimit": "Example limit: 500,000 characters",
+      "trailingWhitespace": "Trailing whitespace",
+      "todoMarker": "TODO marker",
+      "selectNote": "Select a note",
+      "checkAgain": "Check again",
+      "selectNoteFirst": "Select a note first",
+      "saveEditsFirst": "Save your edits first",
+      "nothingToChange": "Nothing to change",
+      "confirmTrim": "Trim spaces? Markdown hard breaks may change. History is retained.",
+      "trimmed": "Trailing spaces trimmed",
+      "checkerTitle": "Note checker",
+      "reportTitle": "Checker workspace",
+      "openChecker": "Open note checker",
+      "openReport": "Open checker workspace",
+      "trimCommand": "Trim trailing spaces",
+      "checkerStatus": "Checker",
+      "trimMenu": "Trim current note",
+      "label.check": "Check",
+      "label.ready": "Checker ready",
+      "commands.open": "Open note checker",
+      "commands.report": "Open checker workspace",
+      "commands.trim": "Trim trailing spaces",
+      "issues": "Issues: {count} (max 200)"
+    }
+  }
+}

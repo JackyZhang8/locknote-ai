@@ -105,6 +105,6 @@ func (s *Server) handleRotateToken(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "更换令牌失败")
 		return
 	}
-	s.hub.Publish(Event{Type: "token.changed"})
+	s.publishEvent(Event{Type: "token.changed"})
 	writeJSON(w, http.StatusOK, map[string]any{"plaintext": plaintext})
 }

@@ -135,6 +135,12 @@ sqlite3 ~/.locknote-mcp/locknote.db
 - 标题下 **＋ 标签** 可选择或创建标签，× 移除关联。
 - 自动清理仅针对本次会话新建、从未编辑且无标签、无置顶的默认空白草稿。
 
+## 插件
+
+桌面应用在 **设置 → 插件** 中支持 ZIP 拖入安装、启用、禁用、配置、日志与卸载。插件可扩展左右侧栏、主工作区标签页、底部面板、命令、菜单和编辑器操作。仅安装可信插件：同页面代码可以读取笔记和访问网络，能力声明不构成安全沙箱。浏览器默认不加载插件。
+
+开发示例为 [大纲侧栏](examples/plugins/outline/README.md) 和 [笔记检查面板](examples/plugins/note-checker/README.md)。打包、SDK、API 和恢复方式见 [插件开发指南](docs/plugin-development.md)。
+
 ## 开发
 
 ~~~bash

@@ -9,6 +9,7 @@
   'use strict';
 
   var DICT = {
+    '插件': 'Plugins',
     '恢复前对比': 'Compare before restoring',
     '历史标题：': 'Historical title: ',
     '当前标题：': 'Current title: ',

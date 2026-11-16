@@ -2,14 +2,19 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/fs"
+	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -21,13 +26,38 @@ import (
 
 	"locknote-mcp/internal/api"
 	"locknote-mcp/internal/mcp"
+	"locknote-mcp/internal/plugins"
 	"locknote-mcp/internal/store"
 )
 
 // desktop 保存 Wails 的运行时上下文，用来把「笔记变了」推给窗口。
 type desktop struct {
-	mu  sync.RWMutex
-	ctx context.Context
+	mu              sync.RWMutex
+	ctx             context.Context
+	pluginSession   string
+	pluginDirectory string
+}
+
+// PluginSession is available through the desktop binding, never the HTTP API.
+// It gates trusted plugin management; it is not a sandbox against enabled plugins.
+func (d *desktop) PluginSession() string { return d.pluginSession }
+
+// OpenPluginDirectory opens only the configured plugin directory, never a caller-supplied path.
+func (d *desktop) OpenPluginDirectory() error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", d.pluginDirectory)
+	case "windows":
+		cmd = exec.Command("explorer.exe", d.pluginDirectory)
+	default:
+		cmd = exec.Command("xdg-open", d.pluginDirectory)
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	go func() { _ = cmd.Wait() }()
+	return nil
 }
 
 func (d *desktop) set(ctx context.Context) {
@@ -51,6 +81,7 @@ func runGUI(args []string) {
 	flags := flag.NewFlagSet("gui", flag.ExitOnError)
 	addr := flags.String("addr", envOr("LOCKNOTE_MCP_ADDR", "127.0.0.1:7420"), "MCP / 网页服务监听地址")
 	dataDir := flags.String("data", defaultDataDir(), "数据目录")
+	safePlugins := flags.Bool("safe-plugins", false, "禁用全部第三方插件后启动")
 	_ = flags.Parse(args)
 
 	dir, err := ensureDir(*dataDir)
@@ -74,33 +105,41 @@ func runGUI(args []string) {
 		fatal("加载界面资源失败: %v", err)
 	}
 
+	pluginManager, err := plugins.New(filepath.Join(dir, "plugins"), version)
+	if err != nil {
+		log.Printf("插件管理不可用，主工作区继续启动: %v", err)
+	}
+	if *safePlugins && pluginManager != nil {
+		if err := pluginManager.DisableAll(); err != nil {
+			log.Printf("禁用插件失败，跳过插件加载: %v", err)
+			pluginManager = nil
+		}
+	}
+	sessionBytes := make([]byte, 32)
+	if _, err := rand.Read(sessionBytes); err != nil {
+		fatal("创建插件会话失败: %v", err)
+	}
+	app := &desktop{pluginSession: hex.EncodeToString(sessionBytes), pluginDirectory: filepath.Join(dir, "plugins")}
+
 	apiServer := api.New(api.Config{
-		Store:        st,
-		MCP:          mcpServer,
-		WebFS:        webFS,
-		Version:      version,
-		BaseURL:      baseURL,
-		TokenFile:    tokenFile,
-		Addr:         *addr,
-		RequireToken: !api.LocalOnly(*addr),
+		Store:         st,
+		Plugins:       pluginManager,
+		PluginSession: app.pluginSession,
+		OnEvent:       func(event api.Event) { app.emit("locknote:change", event) },
+		MCP:           mcpServer,
+		WebFS:         webFS,
+		Version:       version,
+		BaseURL:       baseURL,
+		TokenFile:     tokenFile,
+		Addr:          *addr,
+		RequireToken:  !api.LocalOnly(*addr),
 	})
 
-	app := &desktop{}
 	var closeState desktopCloseState
 	handler := apiServer.Handler()
 
-	// MCP 写入后：SSE 给浏览器，Wails 事件给桌面窗口。
-	mcpServer.OnChange = func(kind string, n *store.Note) {
-		apiServer.Broadcast(kind, n)
-		app.emit("locknote:change", map[string]any{
-			"type":      kind,
-			"noteId":    n.ID,
-			"title":     n.Title,
-			"notebook":  n.NotebookName,
-			"source":    n.Source,
-			"updatedAt": n.UpdatedAt,
-		})
-	}
+	// All writes share the same SSE and desktop notification path.
+	mcpServer.OnChange = apiServer.Broadcast
 
 	// 桌面窗口自己走 Wails 的资源服务 + 进程内 handler；
 	// 这个 HTTP 端口是留给浏览器和 MCP 客户端的。
@@ -129,6 +168,7 @@ func runGUI(args []string) {
 	}
 	err = wails.Run(&options.App{
 		Title:            "Locknote",
+		Bind:             []interface{}{app},
 		Width:            savedBounds.Width,
 		Height:           savedBounds.Height,
 		MinWidth:         900,

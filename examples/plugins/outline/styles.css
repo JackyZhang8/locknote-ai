@@ -1,0 +1,5 @@
+.dev-outline { padding: 14px; color: var(--ink); }
+.dev-outline h3 { font-size: 14px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.dev-outline nav { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
+.dev-outline nav button { text-align: left; padding: 7px 8px; border-radius: 5px; color: var(--ink); background: transparent; }
+.dev-outline nav button:hover { background: var(--light); }

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { PluginSettings } from '../plugins/PluginSettings'
 
 // Keep DOM identifiers and markup stable for the workspace controllers.
 export function WorkspaceShell() {
@@ -553,6 +554,10 @@ export function WorkspaceShell() {
                     </span>
                   </button>
                   {"\n        "}
+                  <button data-plugin-shell="settings-tab" data-settings-tab="plugins">
+                    <svg><use href="#i-plug" /></svg>
+                    <span data-i18n="插件">插件</span>
+                  </button>
                   <button data-settings-tab={"about"}>
                     <svg>
                       <use href={"#i-info"} />
@@ -961,6 +966,9 @@ export function WorkspaceShell() {
                   </div>
                   {"\n\n        "}
                   {"\n        "}
+                  <div className="settings-panel hidden" data-panel="plugins" data-plugin-shell="settings-panel">
+                    <PluginSettings />
+                  </div>
                   <div className={"settings-panel hidden"} data-panel={"about"}>
                     {"\n          "}
                     <div className={"set-section"}>

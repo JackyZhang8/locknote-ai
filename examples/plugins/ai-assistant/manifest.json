@@ -1,0 +1,44 @@
+{
+  "id": "dev.locknote.ai-assistant",
+  "name": "AI 助手",
+  "version": "0.4.4",
+  "apiVersion": 1,
+  "minAppVersion": "0.1.0",
+  "entry": "main.js",
+  "styles": "styles.css",
+  "author": "Locknote AI contributors",
+  "description": "右侧 AI 聊天助手，搜索读取全部笔记，确认后修改，支持自定义 Provider。",
+  "capabilities": [
+    "ui.sidebar",
+    "notes.read",
+    "notes.write",
+    "ai.chat"
+  ],
+  "activationEvents": [
+    "onCommand:open"
+  ],
+  "commands": [
+    {
+      "id": "open",
+      "title": "打开 AI 助手",
+      "titleKey": "open"
+    }
+  ],
+  "defaultLocale": "en",
+  "locales": {
+    "zh": {
+      "name": "AI 助手",
+      "description": "右侧 AI 聊天助手，按需读取笔记并确认修改。",
+      "panel": "AI 助手",
+      "open": "打开 AI 助手",
+      "provider": "Provider 配置"
+    },
+    "en": {
+      "name": "AI Assistant",
+      "description": "Right-side AI chat, on-demand note reading and confirmed edits.",
+      "panel": "AI Assistant",
+      "open": "Open AI assistant",
+      "provider": "Provider configuration"
+    }
+  }
+}

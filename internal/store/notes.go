@@ -147,14 +147,15 @@ func (s *Store) CreateNote(in NoteInput) (*Note, error) {
 
 // NotePatch is a partial update. nil fields are left untouched.
 type NotePatch struct {
-	ForceRevision bool      `json:"-"`
-	Title         *string   `json:"title"`
-	Content       *string   `json:"content"`
-	Notebook      *string   `json:"notebook"`
-	NotebookID    *string   `json:"notebookId"`
-	Tags          *[]string `json:"tags"`
-	Pinned        *bool     `json:"pinned"`
-	Source        string    `json:"source"`
+	ExpectedVersion *int      `json:"expectedVersion,omitempty"`
+	ForceRevision   bool      `json:"-"`
+	Title           *string   `json:"title"`
+	Content         *string   `json:"content"`
+	Notebook        *string   `json:"notebook"`
+	NotebookID      *string   `json:"notebookId"`
+	Tags            *[]string `json:"tags"`
+	Pinned          *bool     `json:"pinned"`
+	Source          string    `json:"source"`
 }
 
 // UpdateNote applies a patch and stores a revision of the previous content.
@@ -163,6 +164,15 @@ func (s *Store) UpdateNote(id string, p NotePatch) (*Note, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if p.ExpectedVersion != nil && (*p.ExpectedVersion != cur.Version || cur.DeletedAt != nil) {
+		return nil, ErrVersionConflict
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
 
 	title := cur.Title
 	content := cur.Content
@@ -187,16 +197,8 @@ func (s *Store) UpdateNote(id string, p NotePatch) (*Note, error) {
 		if p.Notebook != nil {
 			name = *p.Notebook
 		}
-		tx, err := s.db.Begin()
-		if err != nil {
-			return nil, err
-		}
 		nb, n, err := resolveNotebook(tx, deref(p.NotebookID), name, true)
 		if err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		if err := tx.Commit(); err != nil {
 			return nil, err
 		}
 		nbID, nbName = nb, n
@@ -230,22 +232,29 @@ func (s *Store) UpdateNote(id string, p NotePatch) (*Note, error) {
 		}
 	}
 
-	tx, err := s.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = tx.Rollback() }()
-
 	now := nowString()
 	version := cur.Version + 1
-	if _, err := tx.Exec(
-		`UPDATE notes SET title = ?, content = ?, notebook_id = ?, pinned = ?, source = ?,
+	query := `UPDATE notes SET title = ?, content = ?, notebook_id = ?, pinned = ?, source = ?,
 		        version = ?, word_count = ?, updated_at = ?
-		 WHERE id = ?`,
-		title, content, nullString(&nbID), boolInt(pinned), source,
-		version, textutil.WordCount(content), now, id,
-	); err != nil {
+		 WHERE id = ?`
+	args := []any{title, content, nullString(&nbID), boolInt(pinned), source,
+		version, textutil.WordCount(content), now, id}
+	if p.ExpectedVersion != nil {
+		query += " AND version = ? AND deleted_at IS NULL"
+		args = append(args, *p.ExpectedVersion)
+	}
+	result, err := tx.Exec(query, args...)
+	if err != nil {
 		return nil, fmt.Errorf("update note: %w", err)
+	}
+	if p.ExpectedVersion != nil {
+		affected, err := result.RowsAffected()
+		if err != nil {
+			return nil, err
+		}
+		if affected != 1 {
+			return nil, ErrVersionConflict
+		}
 	}
 
 	// Only record a revision when the text actually changed; pinning or moving
@@ -460,7 +469,7 @@ func (s *Store) ListNotes(f ListFilter) ([]*Note, int, error) {
 		where = append(where, "n.deleted_at IS NULL AND n.updated_at >= ?")
 		args = append(args, time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339Nano))
 	case "ai":
-		where = append(where, "n.deleted_at IS NULL AND n.source <> 'web'")
+		where = append(where, "n.deleted_at IS NULL AND n.source <> 'web' AND n.source NOT LIKE 'plugin:%'")
 	case "notebook":
 		where = append(where, "n.deleted_at IS NULL")
 		if f.NotebookID != "" {

@@ -102,8 +102,15 @@ func (s *Server) handleUpdateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	patch.Source = "web"
+	if r.URL.Query().Get("checkpoint") == "true" {
+		patch.ForceRevision = true
+	}
 	note, err := s.store.UpdateNote(id, patch)
 	if err != nil {
+		if errors.Is(err, store.ErrVersionConflict) {
+			writeError(w, http.StatusConflict, "笔记已变化，请重新对比后操作")
+			return
+		}
 		if errors.Is(err, store.ErrNotFound) {
 			writeError(w, http.StatusNotFound, "笔记不存在")
 			return
@@ -173,7 +180,7 @@ func (s *Server) handleBatchNotes(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	s.hub.Publish(Event{Type: "notes.batch", Title: req.Action})
+	s.publishEvent(Event{Type: "notes.batch", Title: req.Action})
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "affected": done})
 }
 
@@ -187,6 +194,13 @@ func (s *Server) handleListRevisions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleRestoreRevision(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		ExpectedVersion int `json:"expectedVersion"`
+	}
+	if decodeJSON(r, &input) != nil || input.ExpectedVersion < 1 {
+		writeError(w, http.StatusBadRequest, "恢复必须提供当前 expectedVersion")
+		return
+	}
 	id := r.PathValue("id")
 	revID := r.PathValue("revID")
 	rev, content, err := s.store.GetRevision(revID)
@@ -199,8 +213,12 @@ func (s *Server) handleRestoreRevision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	title := rev.Title
-	note, err := s.store.UpdateNote(id, store.NotePatch{Content: &content, Title: &title, Source: "web", ForceRevision: true})
+	note, err := s.store.UpdateNote(id, store.NotePatch{Content: &content, Title: &title, Source: "web", ForceRevision: true, ExpectedVersion: &input.ExpectedVersion})
 	if err != nil {
+		if errors.Is(err, store.ErrVersionConflict) {
+			writeError(w, http.StatusConflict, "笔记已变化，请重新对比后恢复")
+			return
+		}
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -30,3 +30,4 @@ outputs/
 /frontend/vite.config.d.ts
 /frontend/wailsjs/
 /frontend/package.json.md5
+docs/

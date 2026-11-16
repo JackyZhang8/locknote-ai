@@ -1,0 +1,115 @@
+/* Plugin host surfaces inherit the workspace palette; no global resets. */
+.plugin-settings { max-width: 860px; color: var(--ink); }
+.plugin-settings-head.set-section { border-bottom: 0; }
+.plugin-settings h4 { margin: 0; font-size: 14px; }
+.plugin-settings p:not(.set-hint), .plugin-dialog p { line-height: 1.65; }
+.plugin-muted { color: var(--muted); font-size: 12px; }
+.plugin-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.plugin-settings-head, .plugin-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.plugin-drop { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; padding: 28px 16px; margin: 18px 0; border: 1px dashed var(--field-border); border-radius: 10px; background: var(--surface-3); cursor: pointer; color: var(--green); }
+.plugin-drop.dragging { background: var(--light); border-color: var(--green); }
+.plugin-drop:disabled { opacity: .6; cursor: default; }
+.plugin-card { padding: 16px; margin: 12px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.plugin-card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 7px 0; color: var(--muted); font-size: 11px; }
+.plugin-card .plugin-actions { margin-top: 12px; }
+.plugin-state { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: var(--light); color: var(--green); }
+.plugin-state.error { color: var(--danger); }
+.plugin-error { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--danger); font-size: 12px; }
+.plugin-directory { overflow-wrap: anywhere; font-size: 11px; margin: 16px 0; }
+.plugin-switch { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; }
+.plugin-toggle { position: relative; gap: 8px; cursor: pointer; min-height: 28px; flex-shrink: 0; }
+.plugin-toggle input { position: absolute; right: 0; width: 34px; height: 20px; margin: 0; opacity: 0; cursor: pointer; }
+.plugin-toggle-track { display: inline-block; width: 34px; height: 20px; border-radius: 20px; background: var(--field-border); pointer-events: none; transition: background .15s; }
+.plugin-toggle-track::after { content: ''; display: block; width: 14px; height: 14px; margin: 3px; border-radius: 50%; background: var(--paper); box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .15s; }
+.plugin-toggle input:checked + .plugin-toggle-track { background: var(--green); }
+.plugin-toggle input:checked + .plugin-toggle-track::after { transform: translateX(14px); }
+.plugin-toggle input:focus-visible + .plugin-toggle-track { outline: 2px solid var(--green); outline-offset: 3px; }
+.plugin-toggle input:disabled + .plugin-toggle-track { opacity: .5; }
+.plugin-safe { padding: 12px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--surface-3); }
+.plugin-dialog-backdrop { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: rgba(25, 36, 29, .28); padding: 24px; }
+.plugin-dialog { max-width: 600px; width: 100%; max-height: 85vh; overflow: auto; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); }
+.plugin-dialog h3 { margin: 0 0 12px; }
+.plugin-dialog footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.plugin-dialog .plugin-warning { color: var(--danger); background: var(--surface-3); border-radius: 8px; padding: 12px; font-size: 12px; }
+.plugin-dialog code { overflow-wrap: anywhere; }
+.plugin-log { margin: 12px 0; max-height: 280px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.65 ui-monospace, monospace; background: var(--surface-3); padding: 12px; border-radius: 8px; }
+.plugin-config { width: 100%; min-height: 160px; resize: vertical; font-family: ui-monospace, monospace; }
+.plugin-command-list { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; max-height: 45vh; overflow: auto; }
+.plugin-command-list button { text-align: left; padding: 10px; border-radius: 6px; }
+.plugin-command-list small { color: var(--muted); display: block; margin-top: 3px; }
+.plugin-toolbar { display: flex; gap: 5px; align-items: center; max-width: 36vw; min-width: 0; overflow-x: auto; flex-shrink: 1; order: -1; border-right: 1px solid var(--line); padding-right: 10px; --wails-draggable: no-drag; }
+.plugin-toolbar button { flex-shrink: 0; white-space: nowrap; }
+.plugin-error-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 180; display: flex; align-items: center; gap: 12px; max-width: min(600px, 90vw); padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: var(--shadow); }
+.plugin-toolbar button { border-radius: 5px; font-size: 11px; padding: 5px 8px; }
+.plugin-toolbar .plugin-status { padding: 4px 7px; font-size: 11px; color: var(--muted); }
+.workspace.plugin-views-open { position: relative; }
+.workspace.plugin-right-open:not(.settings-open) { padding-right: var(--plugin-right-width, 300px); }
+.workspace.plugin-left-open:not(.settings-open) { padding-left: var(--plugin-left-width, 260px); }
+.workspace.plugin-bottom-open:not(.settings-open) { padding-bottom: var(--plugin-bottom-height, 230px); }
+.plugin-view-dock { position: absolute; z-index: 12; display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; background: var(--paper); }
+.plugin-view-dock-right { top: 0; right: 0; bottom: var(--plugin-bottom-height-active, 0px); width: var(--plugin-right-width, 300px); border-left: 1px solid var(--line); }
+.plugin-view-dock-left { top: 0; left: 0; bottom: var(--plugin-bottom-height-active, 0px); width: var(--plugin-left-width, 260px); border-right: 1px solid var(--line); }
+.plugin-view-dock-bottom { left: 0; right: 0; bottom: 0; height: var(--plugin-bottom-height, 230px); border-top: 1px solid var(--line); }
+.plugin-view-dock-main { top: 0; bottom: var(--plugin-bottom-height-active, 0px); left: calc(var(--plugin-left-width-active, 0px) + 64px + var(--library-width, 206px) + var(--list-width, 320px)); right: var(--plugin-right-width-active, 0px); border-left: 1px solid var(--line); }
+.workspace.collapsed .plugin-view-dock-main { left: calc(var(--plugin-left-width-active, 0px) + 64px + var(--list-width, 320px)); }
+.workspace.focus .plugin-view-dock-main { left: calc(var(--plugin-left-width-active, 0px) + 64px); }
+.workspace.settings-open > .plugin-view-dock { display: none; }
+.plugin-view-tabs { display: flex; align-items: center; gap: 2px; overflow-x: auto; flex-shrink: 0; padding: 6px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.plugin-view-tab { display: flex; align-items: center; flex-shrink: 0; border-radius: 6px; }
+.plugin-view-tab.active { background: var(--light); }
+.plugin-view-tab button { padding: 5px 8px; font-size: 11px; border-radius: 5px; }
+.plugin-view-tab .plugin-view-close { padding: 4px 7px; color: var(--muted); }
+.plugin-view-body { flex: 1; min-height: 0; overflow: auto; padding: 14px; }
+.plugin-view-body[hidden] { display: none; }
+.plugin-view-resizer { position: absolute; z-index: 2; outline-offset: -2px; }
+.plugin-view-dock-right > .plugin-view-resizer { left: 0; top: 0; bottom: 0; width: 5px; cursor: col-resize; }
+.plugin-view-dock-left > .plugin-view-resizer { right: 0; top: 0; bottom: 0; width: 5px; cursor: col-resize; }
+.plugin-view-dock-bottom > .plugin-view-resizer { left: 0; right: 0; top: 0; height: 5px; cursor: row-resize; }
+.plugin-context-menu { position: fixed; z-index: 180; min-width: 180px; max-width: 320px; background: var(--paper); padding: 5px; border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+.plugin-context-menu button { display: block; width: 100%; text-align: left; padding: 7px 10px; border-radius: 5px; font-size: 12px; }
+@media (max-width: 1100px) {
+  .workspace.plugin-right-open:not(.settings-open), .workspace.plugin-left-open:not(.settings-open) { padding-left: 0; padding-right: 0; }
+  .plugin-view-dock-right, .plugin-view-dock-left { max-width: 45vw; box-shadow: var(--shadow); }
+  .plugin-view-dock-main { left: 64px; }
+}
+.plugin-view-dock-main { left: var(--plugin-main-left, calc(var(--plugin-left-width-active, 0px) + 64px + var(--library-width, 206px) + var(--list-width, 320px))); right: var(--plugin-main-right, var(--plugin-right-width-active, 0px)); }
+.plugin-context-menu { max-height: calc(100vh - 24px); overflow-y: auto; }
+.rail.plugin-rail-open > .bottom { order: 2; }
+.plugin-rail-launchers { width: 100%; min-width: 0; scrollbar-width: thin; order: 1; display: flex; flex-direction: column; gap: 5px; max-height: 30vh; overflow-y: auto; }
+.plugin-rail-launchers button { width: 100%; padding-inline: 4px; flex-shrink: 0; }
+.plugin-rail-launchers button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace.plugin-main-open:not(.settings-open) > .editor { padding-top: 37px; }
+.plugin-view-dock-main.plugin-note-selected { bottom: auto; }
+/* Host-owned draft surface; formal editor remains untouched underneath. */
+.note-change-review { position: absolute; z-index: 30; top: 0; bottom: var(--plugin-bottom-height-active, 0px); left: var(--plugin-main-left, 40%); right: var(--plugin-main-right, var(--plugin-right-width-active, 0px)); min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--line); color: var(--ink); font-size: 12px; }
+.workspace.settings-open > .note-change-review { display: none; }
+.note-change-review header, .note-change-review footer { flex-shrink: 0; padding: 10px 14px; background: var(--panel); }
+.note-change-review header { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); }
+.note-change-review header small { display: block; margin-top: 4px; color: var(--muted); overflow-wrap: anywhere; }
+.note-change-review nav { flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
+.note-change-review button { border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; color: var(--ink); background: var(--paper); font-size: 12px; }
+.note-change-review button[aria-pressed=true], .note-change-review .note-change-primary { background: var(--light); color: var(--green); border-color: var(--green); }
+.note-change-review button:disabled { opacity: .5; }
+.note-change-scroll { flex: 1 1 0; min-height: 0; overflow: auto; padding: 0 14px 12px; }
+.note-change-scroll pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.7; }
+.note-change-diff span { display: block; min-height: 1.7em; }
+.note-change-diff b { display: inline-block; width: 18px; user-select: none; }
+.note-change-diff .change-add, .note-change-review ins { background: rgba(45,150,80,.12); text-decoration: none; }
+.note-change-diff .change-remove, .note-change-review del { background: rgba(200,70,70,.12); }
+.note-change-edit, .note-change-edit label { display: flex; flex-direction: column; gap: 8px; }
+.note-change-edit { gap: 14px; }
+.note-change-edit input, .note-change-edit textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--line); border-radius: 5px; font: inherit; color: var(--ink); background: var(--paper); }
+.note-change-edit textarea { min-height: 45vh; resize: vertical; line-height: 1.7; }
+.note-change-review footer { border-top: 1px solid var(--line); max-height: 35%; overflow: auto; }
+.note-change-review footer .plugin-actions { justify-content: flex-end; }
+.note-change-review footer p { margin: 0 0 8px; }
+
+.note-change-pending { flex-shrink: 0; margin: 0; padding: 8px 14px; color: var(--muted); background: var(--light); line-height: 1.5; }
+.note-change-banner { order: -1; flex: 0 0 auto; max-height: 120px; overflow: auto; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--light); color: var(--ink); font-size: 12px; }
+.note-change-banner > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.note-change-banner span { min-width: 0; overflow-wrap: anywhere; }
+.note-change-banner button { flex-shrink: 0; border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; color: var(--green); background: var(--paper); font: inherit; }
+.note-change-confirm h3 { margin-top: 0; }
+.note-change-confirm p { line-height: 1.6; }
+.note-change-confirm .plugin-actions { justify-content: flex-end; flex-wrap: wrap; }
+.note-change-confirm .note-change-primary { color: var(--green); background: var(--light); border-color: var(--green); }

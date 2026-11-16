@@ -1,0 +1,5 @@
+{
+  "name": "@locknote/plugin-api",
+  "private": true,
+  "types": "index.d.ts"
+}

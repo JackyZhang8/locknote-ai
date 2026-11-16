@@ -19,7 +19,19 @@ require.extensions['.tsx'] = function (module, filename) {
   module._compile(outputText, filename);
 };
 
+// The plugin extension roots have their own lifecycle tests. Keep this contract
+// focused on the unchanged native workspace and explicitly allow only its new
+// settings entry/container. No original element or attribute may disappear.
+const Module = require('node:module');
+const originalLoad = Module._load;
+Module._load = function(request, parent, isMain) {
+  if (request.endsWith('/history/HistoryWindow')) return { HistoryWindow: () => null };
+  if (request.endsWith('/plugins/PluginSettings')) return { PluginSettings: () => null };
+  if (request.endsWith('/plugins/PluginWorkspace')) return { PluginWorkspace: () => null };
+  return originalLoad.call(this, request, parent, isMain);
+};
 const App = require('../App.tsx').default;
+Module._load = originalLoad;
 const contract = require('./shell-manifest.json');
 const manifest = contract.filter(node => node.tag !== 'body');
 
@@ -47,7 +59,12 @@ function elements(html) {
 test('React shell preserves every original element, identifier, class and attribute', () => {
   let started = false;
   const rendered = renderToStaticMarkup(React.createElement(App, { onReady() { started = true; } }));
-  const actual = elements(rendered);
+  assert.match(rendered, /data-plugin-shell="settings-tab" data-settings-tab="plugins"/);
+  assert.match(rendered, /data-panel="plugins" data-plugin-shell="settings-panel"/);
+  const originalShell = rendered
+    .replace(/<button data-plugin-shell="settings-tab" data-settings-tab="plugins">[\s\S]*?<\/button>/, '')
+    .replace(/<div class="settings-panel hidden" data-panel="plugins" data-plugin-shell="settings-panel"><\/div>/, '');
+  const actual = elements(originalShell);
   const expected = manifest.map(node => ({
     tag: node.tag,
     attrs: Object.fromEntries(Object.entries(node.attrs).map(([key, value]) => [
@@ -55,7 +72,7 @@ test('React shell preserves every original element, identifier, class and attrib
     ])),
   }));
   assert.deepEqual(actual, expected);
-  assert.equal(decode(rendered.replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim(), contract[0].text);
+  assert.equal(decode(originalShell.replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim(), contract[0].text);
   assert.equal(started, false, 'controllers must wait for a client-side DOM commit');
   assert.equal(new Set(actual.filter(node => node.attrs.id).map(node => node.attrs.id)).size, 171);
 });

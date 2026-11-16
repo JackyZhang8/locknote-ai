@@ -27,6 +27,9 @@ import (
 // ErrNotFound is returned when a row does not exist (or was hard deleted).
 var ErrNotFound = errors.New("not found")
 
+// ErrVersionConflict indicates a conditional update used an outdated note revision.
+var ErrVersionConflict = errors.New("note version conflict; reload the note before updating")
+
 const schemaVersion = 3
 
 // Store wraps the SQLite connection.
@@ -534,7 +537,7 @@ func (s *Store) GetStats() (Stats, error) {
 		COALESCE(SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END), 0),
 		COALESCE(SUM(CASE WHEN deleted_at IS NULL AND pinned = 1 THEN 1 ELSE 0 END), 0),
 		COALESCE(SUM(CASE WHEN deleted_at IS NULL THEN word_count ELSE 0 END), 0),
-		COALESCE(SUM(CASE WHEN deleted_at IS NULL AND source <> 'web' THEN 1 ELSE 0 END), 0),
+		COALESCE(SUM(CASE WHEN deleted_at IS NULL AND source <> 'web' AND source NOT LIKE 'plugin:%' THEN 1 ELSE 0 END), 0),
 		COALESCE(SUM(CASE WHEN deleted_at IS NULL AND substr(updated_at, 1, 10) = ? THEN 1 ELSE 0 END), 0)
 		FROM notes`, time.Now().UTC().Format("2006-01-02"))
 	if err := row.Scan(&st.Notes, &st.Trash, &st.Pinned, &st.Words, &st.FromAI, &st.UpdatedToday); err != nil {

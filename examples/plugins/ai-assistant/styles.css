@@ -1,0 +1,67 @@
+.plugin-view-body.ln-ai-assistant { padding: 0; }
+.ln-ai-assistant { color: var(--ink); font-size: 12px; height: 100%; min-height: 0; overflow: hidden; }
+.ln-ai-root { position: relative; display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 6px; gap: 6px; overflow: hidden; box-sizing: border-box; }
+.ln-ai-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px; flex-shrink: 0; }
+.ln-ai-header { margin: -2px -2px 0; align-self: flex-end; }
+.ln-ai-root button, .ln-ai-provider button { padding: 4px 8px; color: var(--green); border: 1px solid var(--line); background: var(--paper); font-size: 11px; }
+.ln-ai-root button:disabled { opacity: .45; }
+.ln-ai-chat > :not(.ln-ai-messages) { flex-shrink: 0; }
+.ln-ai-muted { color: var(--muted); font-size: 10px; line-height: 1.55; margin: 0; }
+.ln-ai-status { color: var(--muted); font-size: 10px; margin: 0; overflow-wrap: anywhere; }
+.ln-ai-status:empty, .ln-ai-error:empty { display: none; }
+.ln-ai-error { color: var(--danger, #b83e3e); margin: 0; font-size: 11px; overflow-wrap: anywhere; }
+.ln-ai-messages { flex: 1 1 0; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding: 2px; }
+.ln-ai-message { flex-shrink: 0; height: auto; min-height: min-content; width: fit-content; max-width: 96%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); align-self: flex-start; }
+.ln-ai-message strong { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.ln-ai-message div { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.ln-ai-user { background: var(--light); align-self: flex-end; max-width: 90%; }
+.ln-ai-user strong { text-align: right; }
+.ln-ai-compose { display: flex; flex-direction: column; gap: 5px; }
+.ln-ai-compose textarea, .ln-ai-provider input, .ln-ai-provider select { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); padding: 6px; font: inherit; color: var(--ink); box-sizing: border-box; }
+.ln-ai-compose textarea { resize: vertical; max-height: 140px; min-height: 54px; }
+.ln-ai-provider { display: flex; flex-direction: column; gap: 8px; padding: 6px; background: var(--light); border-radius: 7px; font-size: 11px; max-height: 48vh; overflow: auto; }
+.ln-ai-provider h4 { margin: 0; font-size: 12px; }
+.ln-ai-provider label { display: flex; flex-direction: column; gap: 4px; }
+.ln-ai-field-row { display: flex; align-items: center; gap: 5px; }
+.ln-ai-field-row input { flex: 1; min-width: 0; }
+.ln-ai-field-row button { flex-shrink: 0; }
+.ln-ai-context { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; min-width: 0; }
+.ln-ai-context input { flex-shrink: 0; margin: 0; accent-color: var(--green); }
+.ln-ai-context span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ln-ai-usage { font-size: 10px; color: var(--muted); text-align: right; margin: 0; }
+.ln-ai-root[data-review="true"] .ln-ai-chat > .ln-ai-messages,
+.ln-ai-root[data-review="true"] .ln-ai-chat > .ln-ai-compose,
+.ln-ai-root[data-review="true"] .ln-ai-chat > .ln-ai-settings,
+.ln-ai-root[data-review="true"] .ln-ai-chat > .ln-ai-muted,
+.ln-ai-root[data-review="true"] .ln-ai-chat > .ln-ai-usage { display: none; }
+.ln-ai-root[data-review="true"] .ln-ai-chat > .ln-ai-proposal { flex: 1 1 0; min-height: 0; }
+.ln-ai-proposal { display: flex; flex-direction: column; gap: 7px; border: 1px solid var(--green); border-radius: 7px; padding: 7px; overflow: hidden; }
+.ln-ai-proposal > strong, .ln-ai-proposal-actions { flex-shrink: 0; }
+.ln-ai-proposal-body { flex: 1 1 0; min-height: 0; overflow: auto; }
+.ln-ai-proposal-actions { padding-top: 7px; border-top: 1px solid var(--line); background: var(--paper); }
+.ln-ai-proposal details { margin: 7px 0; }
+.ln-ai-proposal summary { cursor: pointer; overflow-wrap: anywhere; }
+.ln-ai-proposal pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 140px; overflow: auto; padding: 6px; background: var(--paper); font-size: 11px; }
+.ln-ai-root .ln-ai-save { color: var(--paper); background: var(--green); }
+.ln-ai-root [hidden], .ln-ai-provider [hidden] { display: none; }
+.ln-ai-changes:empty { display: none; }
+.ln-ai-changes { max-height: 20vh; overflow: auto; }
+.ln-ai-change-card { display: flex; align-items: center; gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 5px; margin-top: 4px; font-size: 10px; }
+.ln-ai-change-card span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ln-ai-change-card button { flex-shrink: 0; }
+.ln-ai-history { min-height: 0; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+.ln-ai-history-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px 0; }
+.ln-ai-history-row > button:first-child { flex: 1; min-width: 60px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ln-ai-history-row input { width: 100%; box-sizing: border-box; color: var(--ink); background: var(--paper); border: 1px solid var(--line); padding: 4px; }
+
+.ln-ai-chat { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; gap: 6px; overflow: hidden; }
+.ln-ai-root > .ln-ai-overlay { position: absolute; inset: 34px 0 0; z-index: 5; background: rgba(20, 30, 25, .28); display: flex; align-items: stretch; padding: 8px; min-height: 0; box-sizing: border-box; }
+.ln-ai-panel { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: 0 6px 24px rgba(0, 0, 0, .14); }
+.ln-ai-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 8px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.ln-ai-panel-body { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px; scrollbar-gutter: stable; }
+.ln-ai-panel-body > .ln-ai-history { flex: 1 1 0; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.ln-ai-panel-body .ln-ai-provider { max-height: none; overflow: visible; }
+.ln-ai-panel > .ln-ai-error { padding: 6px; flex-shrink: 0; max-height: 25%; overflow: auto; }
+.ln-ai-chat[inert] { pointer-events: none; user-select: none; }
+
+.ln-ai-root > .ln-ai-overlay[hidden] { display: none; }

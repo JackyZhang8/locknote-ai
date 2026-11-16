@@ -14,20 +14,24 @@ import (
 	"time"
 
 	"locknote-mcp/internal/mcp"
+	"locknote-mcp/internal/plugins"
 	"locknote-mcp/internal/store"
 )
 
 // Config wires the HTTP layer.
 type Config struct {
-	Store        *store.Store
-	MCP          *mcp.Server
-	WebFS        fs.FS
-	Version      string
-	BaseURL      string
-	TokenFile    string
-	Addr         string
-	RequireToken bool
-	Logger       *log.Logger
+	Store         *store.Store
+	MCP           *mcp.Server
+	WebFS         fs.FS
+	Version       string
+	BaseURL       string
+	TokenFile     string
+	Addr          string
+	RequireToken  bool
+	Logger        *log.Logger
+	Plugins       *plugins.Manager
+	PluginSession string
+	OnEvent       func(Event)
 }
 
 // Server serves both the web UI and the JSON API.
@@ -61,14 +65,23 @@ func (s *Server) Broadcast(kind string, note *store.Note) {
 	if note == nil {
 		return
 	}
-	s.hub.Publish(Event{
+	s.publishEvent(Event{
 		Type:      kind,
 		NoteID:    note.ID,
 		Title:     note.Title,
 		Notebook:  note.NotebookName,
 		Source:    note.Source,
+		Version:   note.Version,
 		UpdatedAt: note.UpdatedAt,
 	})
+}
+
+// publishEvent keeps browser SSE and native desktop subscribers on one path.
+func (s *Server) publishEvent(event Event) {
+	s.hub.Publish(event)
+	if s.cfg.OnEvent != nil {
+		s.cfg.OnEvent(event)
+	}
 }
 
 // Handler builds the full mux.
@@ -114,6 +127,30 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/trash/empty", s.handleEmptyTrash)
 	mux.HandleFunc("POST /api/trash/empty-stream", s.handleEmptyTrashStream)
 
+	// --- desktop plugins ---------------------------------------------------
+	mux.HandleFunc("GET /api/plugins", s.handlePlugins)
+	mux.HandleFunc("POST /api/plugins/preview", s.handlePreviewPlugin)
+	mux.HandleFunc("POST /api/plugins/install", s.handleInstallPlugin)
+	mux.HandleFunc("POST /api/plugins/disable-all", s.handleDisablePlugins)
+	mux.HandleFunc("PUT /api/plugins/{id}/enabled", s.handlePluginEnabled)
+	mux.HandleFunc("DELETE /api/plugins/{id}", s.handleUninstallPlugin)
+	mux.HandleFunc("GET /api/plugins/{id}/conversations", s.handlePluginConversations)
+	mux.HandleFunc("POST /api/plugins/{id}/conversations", s.handlePluginConversations)
+	mux.HandleFunc("PUT /api/plugins/{id}/conversations", s.handlePluginConversations)
+	mux.HandleFunc("GET /api/plugins/{id}/conversations/{conversation}", s.handlePluginConversations)
+	mux.HandleFunc("POST /api/plugins/{id}/conversations/{conversation}", s.handlePluginConversations)
+	mux.HandleFunc("PATCH /api/plugins/{id}/conversations/{conversation}", s.handlePluginConversations)
+	mux.HandleFunc("DELETE /api/plugins/{id}/conversations/{conversation}", s.handlePluginConversations)
+	mux.HandleFunc("GET /api/plugins/{id}/data", s.handlePluginData)
+	mux.HandleFunc("PUT /api/plugins/{id}/data", s.handlePluginData)
+	mux.HandleFunc("GET /api/plugins/assets/{session}/{id}/{version}/{asset...}", s.handlePluginAsset)
+	mux.HandleFunc("POST /api/plugins/{id}/ai/chat", s.handlePluginAIChat)
+	mux.HandleFunc("POST /api/plugins/{id}/ai/models", s.handlePluginAIModels)
+	mux.HandleFunc("GET /api/plugins/{id}/notes", s.handlePluginListNotes)
+	mux.HandleFunc("GET /api/plugins/{id}/notes/{noteId}", s.handlePluginGetNote)
+	mux.HandleFunc("POST /api/plugins/{id}/notes", s.handlePluginCreateNote)
+	mux.HandleFunc("PATCH /api/plugins/{id}/notes/{noteId}", s.handlePluginUpdateNote)
+
 	// --- MCP ---------------------------------------------------------------
 	mux.Handle("/mcp", s.mcp.HTTPHandler(s.authorizeMCP))
 	mux.Handle("/mcp/", s.mcp.HTTPHandler(s.authorizeMCP))
@@ -129,7 +166,8 @@ func (s *Server) withMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "same-origin")
 
-		if strings.HasPrefix(r.URL.Path, "/api/") && s.cfg.RequireToken {
+		isPluginRoute := r.URL.Path == "/api/plugins" || strings.HasPrefix(r.URL.Path, "/api/plugins/")
+		if strings.HasPrefix(r.URL.Path, "/api/") && s.cfg.RequireToken && !isPluginRoute {
 			if !s.authorizeMCP(r) {
 				writeError(w, http.StatusUnauthorized, "需要访问令牌")
 				return
@@ -236,6 +274,7 @@ type Event struct {
 	Title     string    `json:"title,omitempty"`
 	Notebook  string    `json:"notebook,omitempty"`
 	Source    string    `json:"source,omitempty"`
+	Version   int       `json:"version,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
 

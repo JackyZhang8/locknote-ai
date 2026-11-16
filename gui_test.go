@@ -1,6 +1,8 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +14,7 @@ import (
 
 	"locknote-mcp/internal/api"
 	"locknote-mcp/internal/mcp"
+	"locknote-mcp/internal/plugins"
 	"locknote-mcp/internal/store"
 )
 
@@ -33,13 +36,43 @@ func TestDesktopAssetChain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("web assets: %v", err)
 	}
+	manager, err := plugins.New(t.TempDir(), version)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var pluginZIP bytes.Buffer
+	zw := zip.NewWriter(&pluginZIP)
+	for name, body := range map[string]string{
+		"manifest.json":    `{"id":"dev.desktop","name":"Desktop test","version":"0.1.0","apiVersion":1,"minAppVersion":"0.1.0","entry":"main.js","capabilities":[]}`,
+		"main.js":          "export default { activate() {} }",
+		"assets/worker.js": "self.onmessage = () => self.postMessage('ready')",
+	} {
+		w, err := zw.Create(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := manager.Install(pluginZIP.Bytes()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := manager.SetEnabled("dev.desktop", true); err != nil {
+		t.Fatal(err)
+	}
 
 	apiServer := api.New(api.Config{
-		Store:   st,
-		MCP:     mcp.NewServer(st, version, "http://127.0.0.1:7420"),
-		WebFS:   webFS,
-		Version: version,
-		BaseURL: "http://127.0.0.1:7420",
+		Store:         st,
+		MCP:           mcp.NewServer(st, version, "http://127.0.0.1:7420"),
+		WebFS:         webFS,
+		Version:       version,
+		BaseURL:       "http://127.0.0.1:7420",
+		Plugins:       manager,
+		PluginSession: "desktop-test-session",
 	})
 
 	handler, err := assetserver.NewAssetHandler(
@@ -82,6 +115,14 @@ func TestDesktopAssetChain(t *testing.T) {
 	}
 
 	// API 走 handler
+	for _, asset := range []string{"main.js", "assets/worker.js"} {
+		path := "/api/plugins/assets/desktop-test-session/dev.desktop/0.1.0/" + asset
+		rec := get(path)
+		if rec.Code != http.StatusOK || !strings.Contains(rec.Header().Get("Content-Type"), "javascript") || rec.Body.Len() == 0 {
+			t.Errorf("plugin asset %s => %d %s", asset, rec.Code, rec.Header().Get("Content-Type"))
+		}
+	}
+
 	stats := get("/api/stats")
 	if stats.Code != http.StatusOK {
 		t.Fatalf("GET /api/stats => %d", stats.Code)

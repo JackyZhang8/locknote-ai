@@ -135,6 +135,12 @@ Quit the app before restoring and retain a backup of the current database. Datab
 - Use **＋ Tags** below the title to select or create tags; × removes an association.
 - Automatic cleanup only applies to untouched default blank drafts created during the current session, without tags or a pin.
 
+## Plugins
+
+The desktop app supports ZIP installation, enable/disable, settings, logs, and removal under **Settings → Plugins**. Plugins can add sidebars, workspace tabs, bottom panels, commands, menus, and editor actions. Install only trusted plugins: same-page code may read notes and access the network; capability declarations are not a security sandbox. Browser sessions do not load plugins.
+
+Try the [outline sidebar](examples/plugins/outline/README.md) and [note checker](examples/plugins/note-checker/README.md) development examples. See the [plugin developer guide (Chinese)](docs/plugin-development.md) and [TypeScript SDK](sdk/plugin-api/README.md) for packaging, API contracts, and recovery.
+
 ## Development
 
 ~~~bash

@@ -3,6 +3,8 @@ import { BootOverlay } from './components/BootOverlay'
 import { IconSymbols } from './components/IconSymbols'
 import { WorkspaceShell } from './components/WorkspaceShell'
 import { Overlays } from './components/Overlays'
+import { PluginWorkspace } from './plugins/PluginWorkspace'
+import { HistoryWindow } from './history/HistoryWindow'
 
 interface AppProps {
   onReady?: () => void
@@ -26,6 +28,8 @@ export default function App({ onReady }: AppProps) {
       <IconSymbols />
       <WorkspaceShell />
       <Overlays />
+      <PluginWorkspace />
+      <HistoryWindow />
     </>
   )
 }
