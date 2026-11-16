@@ -768,6 +768,8 @@ kbd {
 }
 .about-copy { font-size: 12px; line-height: 1.9; color: var(--muted); }
 .about-copy b { color: var(--green); }
+.about-link { color: var(--green); overflow-wrap: anywhere; text-decoration: none; }
+.about-link:hover { text-decoration: underline; }
 .tool-item .tool-title { font-weight: 400; color: var(--text-dim); font-family: inherit; font-size: 10.5px; }
 
 .settings-foot {

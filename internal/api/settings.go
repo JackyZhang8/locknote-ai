@@ -213,7 +213,7 @@ func (s *Server) handleImportMarkdown(w http.ResponseWriter, r *http.Request) {
 							writeError(w, 400, "解压后内容超过 64 MB")
 							return
 						}
-						if entry.Name == "README.md" && strings.HasPrefix(string(content), "# LockNote.ai export") && !strings.Contains(string(content), metadataMarker) {
+						if entry.Name == "README.md" && strings.HasPrefix(string(content), "# LockNote.app export") && !strings.Contains(string(content), metadataMarker) {
 							continue
 						}
 						payload.Files = append(payload.Files, importFile{entry.Name, string(content)})

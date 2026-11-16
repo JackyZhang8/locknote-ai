@@ -324,8 +324,8 @@ export function Overlays() {
         {"\n  "}
         <section className={"dialog"} style={{"background": "var(--paper)", "borderRadius": "14px", "width": "min(560px,100%)", "padding": "30px", "boxShadow": "var(--shadow)", "margin": "auto"}}>
           {"\n    "}
-          <h2 style={{"margin": "0 0 16px", "fontSize": "20px"}} id={"dialogTitle"} data-i18n={"关于 LockNote.ai"}>
-            {"关于 LockNote.ai"}
+          <h2 style={{"margin": "0 0 16px", "fontSize": "20px"}} id={"dialogTitle"} data-i18n={"关于 LockNote.app"}>
+            {"关于 LockNote.app"}
           </h2>
           {"\n    "}
           <div id={"dialogBody"} style={{"fontSize": "13px", "lineHeight": "1.9", "color": "var(--muted)"}} />

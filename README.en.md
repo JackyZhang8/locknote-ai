@@ -143,6 +143,8 @@ Quit the app before restoring and retain a backup of the current database. Datab
 
 The desktop app supports ZIP installation, enable/disable, settings, logs, and removal under **Settings → Plugins**. Plugins can add sidebars, workspace tabs, bottom panels, commands, menus, and editor actions. Install only trusted plugins: same-page code may read notes and access the network; capability declarations are not a security sandbox. Browser sessions do not load plugins.
 
+The **Plugin market** reads the official static catalog with search, pagination, and compatible release selection. Download packages and confirm installation or upgrades in the app; downloads can be cancelled. Package size, SHA-256, and manifest metadata are verified before installation. The last catalog remains available offline. Plugins never upgrade or activate automatically.
+
 Installation distinguishes upgrades, replacements, and downgrades for the same plugin ID and asks for confirmation. Enabled plugin entries return after restart, and plugins can follow the application language.
 
 | Example | Purpose |
@@ -151,7 +153,7 @@ Installation distinguishes upgrades, replacements, and downgrades for the same p
 | [Outline](examples/plugins/outline/README.md) | Heading navigation, level filtering, and line navigation |
 | [Note Checker](examples/plugins/note-checker/README.md) | Background checks, a bottom panel, and revision-safe cleanup |
 
-Build and install the example ZIPs using the commands in their documentation. See the [plugin developer guide (Chinese)](docs/plugin-development.md) and [TypeScript SDK](sdk/plugin-api/README.md) for packaging, API contracts, and safe startup.
+Install official examples from the plugin market, or build their ZIPs using the commands in their documentation. See the [plugin developer guide (Chinese)](docs/plugin-development.md) and [TypeScript SDK](sdk/plugin-api/README.md) for packaging, API contracts, and safe startup.
 
 ### AI Assistant
 

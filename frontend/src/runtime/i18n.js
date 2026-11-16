@@ -1,4 +1,4 @@
-/* LockNote.ai — language + appearance.
+/* LockNote.app — language + appearance.
  *
  * The dictionary is keyed by the Chinese source text so app.js can keep its
  * literals readable: tr('全部笔记') returns 'All Notes' in English mode and
@@ -80,7 +80,7 @@
     '导出为 Markdown 压缩包（.zip），含笔记本与标签；解压后的 .md 文件可再次导入。': 'Export a Markdown archive (.zip) with notebooks and tags. Extract the .md files to import them again.',
 
     /* brand, chrome ---------------------------------------------------- */
-    "LockNote.ai · AI 原生笔记库": "LockNote.ai · An AI-native notebook",
+    "LockNote.app · AI 原生笔记库": "LockNote.app · An AI-native notebook",
     "AI 原生笔记库，让想法有处安放": "An AI-native notebook library, a home for your ideas",
     "MCP 就绪": "MCP ready",
     "MCP 就绪 · ": "MCP ready · ",
@@ -324,7 +324,7 @@
     "用途": "Purpose",
     "AI 客户端": "AI client",
     "例如 Cursor、Claude Code": "e.g. Cursor, Claude Code",
-    "关于 LockNote.ai": "About LockNote.ai",
+    "关于 LockNote.app": "About LockNote.app",
     "历史版本 · ": "Version history · ",
     "<p style=\"margin:0\">还没有历史版本。每次保存或 AI 更新都会留下一个版本。</p>": "<p style=\"margin:0\">No versions yet. Every save or AI update keeps a revision.</p>",
 
@@ -391,7 +391,7 @@
     "项": "items",
 
     /* settings dialog — second pass -------------------------------------- */
-    "偏好设置 · LockNote.ai": "Preferences · LockNote.ai",
+    "偏好设置 · LockNote.app": "Preferences · LockNote.app",
     "在此调整外观、语言、数据与 AI 接入行为，设置会保存在本地数据库。": "Adjust appearance, language, data and AI behaviour here. Preferences are stored in the local database.",
     "外观主题": "Theme",
     "界面显示语言，切换后立即生效。": "Interface language. Changes apply immediately.",
@@ -518,7 +518,7 @@
       var block = HTML[el.getAttribute('data-i18n-html')];
       if (block) renderHTML(el, block[lang] || block['zh-CN']);
     });
-    document.title = tr('LockNote.ai · AI 原生笔记库');
+    document.title = tr('LockNote.app · AI 原生笔记库');
   }
 
   function setLang(next) {
@@ -551,8 +551,6 @@
   // fragile phrase-by-phrase translation of HTML.
   function aboutHTML(sys) {
     var v = sys.version || '—';
-    var url = sys.mcpUrl || '—';
-    var db = sys.dbPath || '—';
     var tools = (sys.tools || []).length;
     var esc = function (s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -560,12 +558,12 @@
       });
     };
     var paras = lang === 'en-US' ? [
-      ['A local notebook your AI can read and write.', 'LockNote.ai keeps project docs, ideas and plans in one quiet workspace — and opens it to your AI assistant. What you write and what AI writes land in the same place.'],
+      ['A local notebook your AI can read and write.', 'LockNote.app keeps project docs, ideas and plans in one quiet workspace — and opens it to your AI assistant. What you write and what AI writes land in the same place.'],
       ['Plain Markdown, your data stays yours.', 'Notes are stored as plaintext Markdown in a single local SQLite file. No cloud, no account. Copy that file for a complete backup, migrate it whenever you like, or read it with any tool.'],
       ['MCP built in.', 'The app ships with ' + tools + ' MCP tools plus resources and prompt templates, over Streamable HTTP and stdio. Documents saved by AI appear in the list immediately with an AI badge; your edits are what AI reads next time.'],
       ['Clear access boundaries.', 'The service listens on 127.0.0.1 by default; enable a Bearer token when exposing it beyond localhost. Only token hashes are kept locally. Endpoints, client snippets and token management live in “Connect AI”.']
     ] : [
-      ['一个让 AI 直接读写的本地笔记库。', 'LockNote.ai 把项目文档、想法和方案收进一个安静的工作台，同时把它开放给 AI 助手：你写的、AI 写的，落在同一处。'],
+      ['一个让 AI 直接读写的本地笔记库。', 'LockNote.app 把项目文档、想法和方案收进一个安静的工作台，同时把它开放给 AI 助手：你写的、AI 写的，落在同一处。'],
       ['纯 Markdown，数据在你自己手里。', '笔记以明文 Markdown 存进本机的一个 SQLite 文件，不依赖云端，也不需要账号；复制这个文件就是完整备份，随时可以迁移，或用任何工具直接读取。'],
       ['内置 MCP 服务。', '应用自带 ' + tools + ' 个 MCP 工具，以及资源和提示模板，支持 Streamable HTTP 与 stdio 两种接入方式。AI 保存的文档会立刻出现在列表里并带 AI 标记；你在界面上的修改，AI 下一次读取时也是最新的。'],
       ['清晰的访问边界。', '服务默认只监听 127.0.0.1；需要对外提供访问时启用 Bearer 令牌，令牌在本地只保存哈希。接入地址、客户端配置示例与令牌管理都收在「接入 AI」里。']
@@ -577,13 +575,13 @@
       return '<p style="margin:0 0 13px"><b style="color:var(--green)">' + p[0] + '</b> ' + p[1] + '</p>';
     }).join('');
     var labels = lang === 'en-US'
-      ? ['Version', 'MCP endpoint', 'Data file', 'Shortcuts']
-      : ['版本', 'MCP 端点', '数据文件', '快捷键'];
+      ? ['Version', 'Shortcuts', 'Website', 'GitHub source']
+      : ['版本', '快捷键', '官网', 'GitHub 开源地址'];
     html += '<div style="border-top:1px solid var(--line);margin-top:16px;padding-top:13px;font-size:11.5px;line-height:2">' +
       '<div>' + labels[0] + ' <span style="color:var(--muted)">·</span> <span style="color:var(--text)">' + esc(v) + '</span></div>' +
-      '<div>' + labels[1] + ' <span style="color:var(--muted)">·</span> <span style="color:var(--text)">' + esc(url) + '</span></div>' +
-      '<div>' + labels[2] + ' <span style="color:var(--muted)">·</span> <span style="color:var(--text)">' + esc(db) + '</span></div>' +
-      '<div>' + labels[3] + ' <span style="color:var(--muted)">·</span> ⌘ K ' + tr('搜索') + ' / ⌘ S ' + tr('保存') + ' / ⌘ N ' + tr('新建') + ' / Esc ' + tr('退出专注') + '</div>' +
+      '<div>' + labels[2] + ' <span style="color:var(--muted)">·</span> <a class="about-link" href="https://locknote.app" target="_blank" rel="noopener noreferrer">https://locknote.app</a></div>' +
+      '<div>' + labels[3] + ' <span style="color:var(--muted)">·</span> <a class="about-link" href="https://github.com/JackyZhang8/locknote-ai" target="_blank" rel="noopener noreferrer">https://github.com/JackyZhang8/locknote-ai</a></div>' +
+      '<div>' + labels[1] + ' <span style="color:var(--muted)">·</span> ⌘ K ' + tr('搜索') + ' / ⌘ S ' + tr('保存') + ' / ⌘ N ' + tr('新建') + ' / Esc ' + tr('退出专注') + '</div>' +
       '</div>';
     return html;
   }

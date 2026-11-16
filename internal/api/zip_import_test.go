@@ -16,7 +16,7 @@ func TestZIPImportRestoresMetadata(t *testing.T) {
 	var archive bytes.Buffer
 	zw := zip.NewWriter(&archive)
 	_ = writeZipEntry(zw, "notes/test.md", renderMarkdownFile(note))
-	_ = writeZipEntry(zw, "README.md", "# LockNote.ai export")
+	_ = writeZipEntry(zw, "README.md", "# LockNote.app export")
 	_ = zw.Close()
 	var upload bytes.Buffer
 	writer := multipart.NewWriter(&upload)

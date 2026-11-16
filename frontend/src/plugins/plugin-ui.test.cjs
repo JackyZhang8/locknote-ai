@@ -27,6 +27,7 @@ Module._load = function(request, parent, isMain) {
 };
 const { PluginSettings, PluginConfiguration, PluginInstallDetails, installActionText, installPluginWithFeedback, PluginInstallSuccess, installSuccessText } = require('./PluginSettings.tsx');
 const { PluginWorkspace, ViewDock, matchesPluginHotkey } = require('./PluginWorkspace.tsx');
+const { PluginMarketCard, PluginMarket } = require('./PluginMarket.tsx');
 Module._load = originalLoad;
 
 test('browser settings explain desktop-only plugins and cannot execute or install code', () => {
@@ -169,3 +170,28 @@ test('dock renders the runtime-selected existing tab and returns to the note tab
  assert.match(html, /plugin-note-selected/)
  snapshot.activeViews = {}
 })
+
+
+test('market cards show localized install and upgrade states without image previews', () => {
+ const release = { version: '0.1.10', apiVersion: 1, minAppVersion: '0.1.0', capabilities: ['notes.read'], file: 'x.zip', size: 1000, sha256: '' };
+ const plugin = { id: 'dev.market', name: '市场示例', description: '<script>bad()</script>', author: 'Dev', license: 'MIT', sourceUrl: '', defaultLocale: 'zh', locales: {}, latestVersion: '0.1.10', releases: [release] };
+ const render = (installed, appVersion = 'v0.1.1') => renderToStaticMarkup(React.createElement(PluginMarketCard, { plugin, installed, appVersion, locale: 'zh-CN', busy: false, onInstall() {}, onDetails() {} }));
+ assert.match(render(), /安装/);
+ assert.match(render('0.1.9'), /升级/);
+ assert.match(render('0.1.10'), /已安装/);
+ assert.match(render('0.2.0'), /本地版本较新/);
+ assert.match(render(undefined, '0.0.1'), /不兼容/);
+ assert.match(render(), /&lt;script&gt;/);
+ assert.doesNotMatch(render(), /<img|<script>/);
+});
+
+
+test('first market render immediately exposes an indeterminate progress bar', () => {
+ const html = renderToStaticMarkup(React.createElement(PluginMarket, { records: [], available: true, busy: false, onPrepare: async () => {} }));
+ assert.match(html, /aria-busy="true"/);
+ assert.match(html, /role="progressbar"/);
+ assert.match(html, /正在读取插件市场/);
+ assert.doesNotMatch(html, /aria-valuenow=/);
+ const browser = renderToStaticMarkup(React.createElement(PluginMarket, { records: [], available: false, busy: false, onPrepare: async () => {} }));
+ assert.doesNotMatch(browser, /role="progressbar"/);
+});

@@ -143,6 +143,8 @@ sqlite3 ~/.locknote-mcp/locknote.db
 
 桌面应用在 **设置 → 插件** 中支持 ZIP 拖入安装、启用、禁用、配置、日志与卸载。插件可扩展左右侧栏、主工作区标签页、底部面板、命令、菜单和编辑器操作。仅安装可信插件：同页面代码可以读取笔记和访问网络，能力声明不构成安全沙箱。浏览器默认不加载插件。
 
+「插件市场」读取官方静态目录，支持搜索、分页和兼容版本筛选，可直接下载并确认安装或升级。下载支持取消；安装前校验包大小、SHA-256 和插件清单。离线时可浏览上次缓存的目录，插件不会自动升级或启用。
+
 同 ID 插件安装时区分升级、替换和降级，并在确认后处理；重启恢复已启用插件的入口。插件支持跟随应用切换中英文。
 
 | 示例 | 用途 |
@@ -151,7 +153,7 @@ sqlite3 ~/.locknote-mcp/locknote.db
 | [大纲侧栏](examples/plugins/outline/README.md) | 标题导航、层级筛选与行定位 |
 | [笔记检查](examples/plugins/note-checker/README.md) | 后台检查、底部面板及版本安全的格式整理 |
 
-示例需自行打包后拖入安装，命令见各示例文档。插件开发、打包与安全启动见 [插件开发指南](docs/plugin-development.md)，接口类型见 [TypeScript SDK](sdk/plugin-api/README.md)。
+可在插件市场安装官方示例，也可自行打包后拖入安装，命令见各示例文档。插件开发、打包与安全启动见 [插件开发指南](docs/plugin-development.md)，接口类型见 [TypeScript SDK](sdk/plugin-api/README.md)。
 
 ### AI 助手
 

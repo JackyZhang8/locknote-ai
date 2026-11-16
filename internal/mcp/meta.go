@@ -6,7 +6,7 @@ package mcp
 type enMeta struct{ Title, Description string }
 
 var enTools = map[string]enMeta{
-	"save_note":          {"Save Note", "Save a Markdown document to LockNote.ai — plans, summaries, meeting notes, code docs or research notes. Matching titles append by default; pass external_id to update the same document instead of creating duplicates. Returns the note id, title and notebook."},
+	"save_note":          {"Save Note", "Save a Markdown document to LockNote.app — plans, summaries, meeting notes, code docs or research notes. Matching titles append by default; pass external_id to update the same document instead of creating duplicates. Returns the note id, title and notebook."},
 	"save_notes":         {"Save Multiple Notes", "Save several notes at once — ideal for importing a project's documents, a set of meeting notes or a whole directory. All notes can share one default notebook."},
 	"get_note":           {"Read Note", "Read the full Markdown body and metadata of a note by id (or by title, optionally scoped to a notebook). Call before summarising, continuing or quoting an existing note."},
 	"update_note":        {"Update Note", "Change a note's title, body, notebook, tags or pinned state. Only pass the fields you want to change; updating the body records a revision. Use append_to_note to add content at the end."},
@@ -23,7 +23,7 @@ var enTools = map[string]enMeta{
 }
 
 var enPrompts = map[string]enMeta{
-	"save_project_docs":  {"Save Project Docs to LockNote.ai", "Guide the model through the current project's documents and write them into a notebook in a structured way."},
+	"save_project_docs":  {"Save Project Docs to LockNote.app", "Guide the model through the current project's documents and write them into a notebook in a structured way."},
 	"summarize_notebook": {"Summarize a Notebook", "Read the notes in a notebook and produce a structured summary."},
 	"daily_digest":       {"Daily Digest", "Review recently edited notes and produce a short progress summary."},
 }

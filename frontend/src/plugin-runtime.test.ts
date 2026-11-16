@@ -619,3 +619,19 @@ test('disabling during a submitted undo preserves its successful receipt', async
  await new Promise(resolve => setTimeout(resolve, 0));await runtime.deactivate(rec.manifest.id);release()
  assert.equal((await undoing).saved, true);assert.equal(note.content, 'Old');runtime.shutdown()
 })
+
+test('market installation uses an opaque token and preserves a committed receipt if refresh fails', async () => {
+ const rec = record('market.test');rec.enabled = false
+ let committed = false, submitted = ''
+ const runtime = new PluginRuntime({ fetch: async (url, init) => {
+  if (String(url).endsWith('/market/install')) { submitted = String(init?.body);committed = true;return new Response(JSON.stringify(rec), { status: 201 }) }
+  if (committed) throw new Error('Refresh offline')
+  return new Response(JSON.stringify({ plugins: [], directory: '' }))
+ } })
+ await runtime.initialize('session')
+ const saved = await runtime.install({ token: 'verified-package' }, { manifest: rec.manifest, digest: 'new-digest', action: 'install' })
+ assert.equal(saved.manifest.id, rec.manifest.id)
+ assert.deepEqual(JSON.parse(submitted), { token: 'verified-package', expectedDigest: '' })
+ assert.equal(runtime.getSnapshot().errors.host.includes('Refresh offline'), true)
+ runtime.shutdown()
+})

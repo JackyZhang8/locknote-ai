@@ -220,11 +220,14 @@ export class PluginRuntime {
   async previewInstall(file: Blob): Promise<PluginInstallPreview> {
     return this.uploadPackage('/preview', file)
   }
-  async install(file: Blob, preview?: PluginInstallPreview) {
-    const record = await this.uploadPackage<PluginRecord>('/install', file, preview?.replaces?.digest ?? '')
+  async install(file: Blob | { token: string }, preview?: PluginInstallPreview) {
+    if (preview && noteChanges.getSnapshot().entries.some(entry => entry.pluginId === preview.manifest.id && (entry.busy || (entry.state === 'pending' && !entry.retained)))) throw new Error('请先处理此插件的待审阅改动 / Resolve this plugin’s pending review first')
+    const record = 'token' in file
+      ? await this.api<PluginRecord>('/market/install', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: file.token, expectedDigest: preview?.replaces?.digest ?? '' }) })
+      : await this.uploadPackage<PluginRecord>('/install', file, preview?.replaces?.digest ?? '')
     const previous = this.state.records.find(item => item.manifest.id === record?.manifest?.id)
     if (record?.manifest?.id && (!record.enabled || record.digest !== previous?.digest)) await this.deactivate(record.manifest.id)
-    await this.refresh()
+    try { await this.refresh() } catch (error) { this.recordError('host', error) }
     return record
   }
   async setEnabled(id: string, enabled: boolean) {

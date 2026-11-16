@@ -196,7 +196,7 @@ func (s *Store) seedWelcomeNotes() error {
 	if count > 0 {
 		return nil
 	}
-	welcome := `LockNote.ai 把「笔记」和「AI」放在同一个库上：你在界面里写，AI 通过 MCP 读写，双方看到的是同一份 Markdown。
+	welcome := `LockNote.app 把「笔记」和「AI」放在同一个库上：你在界面里写，AI 通过 MCP 读写，双方看到的是同一份 Markdown。
 
 ## 三件事
 
@@ -208,7 +208,7 @@ func (s *Store) seedWelcomeNotes() error {
 
 1. 点击右上角「接入 AI」，复制端点与令牌。
 2. 粘进 Claude Code / Cursor / 任意 MCP 客户端。
-3. 对 AI 说：「把这份方案存到 LockNote.ai 的工作项目里」。
+3. 对 AI 说：「把这份方案存到 LockNote.app 的工作项目里」。
 
 > 数据只有一份，存在本机，随时可以备份。
 `
@@ -245,7 +245,7 @@ func (s *Store) seedWelcomeNotes() error {
 		tags                     []string
 	}
 	items := []item{
-		{"欢迎使用 LockNote.ai", welcome, "收集箱", true, []string{"指南"}},
+		{"欢迎使用 LockNote.app", welcome, "收集箱", true, []string{"指南"}},
 		{"让 AI 把项目文档写进来", guide, "工作项目", false, []string{"指南", "MCP"}},
 	}
 	for _, it := range items {

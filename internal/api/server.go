@@ -36,11 +36,13 @@ type Config struct {
 
 // Server serves both the web UI and the JSON API.
 type Server struct {
-	cfg       Config
-	store     *store.Store
-	mcp       *mcp.Server
-	hub       *Hub
-	startedAt time.Time
+	cfg        Config
+	store      *store.Store
+	mcp        *mcp.Server
+	hub        *Hub
+	startedAt  time.Time
+	marketOnce sync.Once
+	market     *plugins.Marketplace
 }
 
 // New creates the API server.
@@ -129,6 +131,10 @@ func (s *Server) Handler() http.Handler {
 
 	// --- desktop plugins ---------------------------------------------------
 	mux.HandleFunc("GET /api/plugins", s.handlePlugins)
+	mux.HandleFunc("GET /api/plugins/market", s.handlePluginMarket)
+	mux.HandleFunc("POST /api/plugins/market/prepare", s.handlePrepareMarketPlugin)
+	mux.HandleFunc("POST /api/plugins/market/install", s.handleInstallMarketPlugin)
+	mux.HandleFunc("DELETE /api/plugins/market/prepared/{token}", s.handleDiscardMarketPlugin)
 	mux.HandleFunc("POST /api/plugins/preview", s.handlePreviewPlugin)
 	mux.HandleFunc("POST /api/plugins/install", s.handleInstallPlugin)
 	mux.HandleFunc("POST /api/plugins/disable-all", s.handleDisablePlugins)

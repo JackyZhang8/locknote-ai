@@ -2159,7 +2159,7 @@ export function startWorkspace() {
       fetch('/api/import?duplicates=' + encodeURIComponent($('importDuplicates').value), { method: 'POST', body: form }).then(function (res) {
         return res.json().then(function (data) { if (!res.ok) throw new Error(data.error || tr('导入失败')); return data; });
       }).then(function (res) {
-       
+
         var msg = tr('已导入 ') + res.created + tr(' 篇笔记') + ' · ' + tr('更新') + ' ' + (res.updated || 0) + ' · ' + tr('跳过') + ' ' + res.skipped + ' · ' + tr('失败') + ' ' + (res.errors || []).length;
         $('importStatus').textContent = msg;
         toast(msg);
@@ -2209,7 +2209,7 @@ export function startWorkspace() {
   /* ------------------------------------------------------------- dialogs */
 
   function showAbout() {
-    $('dialogTitle').textContent = tr('关于 LockNote.ai');
+    $('dialogTitle').textContent = tr('关于 LockNote.app');
     window.LNReactUI.renderRegion($('dialogBody'), i18n.aboutHTML(state.system || {}));
     $('dialogOverlay').classList.add('show');
   }

@@ -190,7 +190,7 @@ func runServe(args []string) {
 }
 
 func printBanner(addr, baseURL, tokenFile, token, dbPath string, local bool) {
-	fmt.Printf("\n  LockNote.ai %s\n\n", version)
+	fmt.Printf("\n  LockNote.app %s\n\n", version)
 	fmt.Printf("  网页界面   %s\n", baseURL)
 	fmt.Printf("  MCP 端点   %s/mcp\n", baseURL)
 	if token != "" {

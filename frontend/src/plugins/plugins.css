@@ -6,7 +6,7 @@
 .plugin-muted { color: var(--muted); font-size: 12px; }
 .plugin-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .plugin-settings-head, .plugin-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-.plugin-drop { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; padding: 28px 16px; margin: 18px 0; border: 1px dashed var(--field-border); border-radius: 10px; background: var(--surface-3); cursor: pointer; color: var(--green); }
+.plugin-drop { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; padding: 28px 16px; margin: 0 0 18px; border: 1px dashed var(--field-border); border-radius: 10px; background: var(--surface-3); cursor: pointer; color: var(--green); }
 .plugin-drop.dragging { background: var(--light); border-color: var(--green); }
 .plugin-drop:disabled { opacity: .6; cursor: default; }
 .plugin-card { padding: 16px; margin: 12px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
@@ -113,3 +113,25 @@
 .note-change-confirm p { line-height: 1.6; }
 .note-change-confirm .plugin-actions { justify-content: flex-end; flex-wrap: wrap; }
 .note-change-confirm .note-change-primary { color: var(--green); background: var(--light); border-color: var(--green); }
+
+.plugin-settings-tabs { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 4px; margin: 4px 0 20px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; }
+.plugin-settings-tabs [role="tab"] { min-height: 34px; padding: 7px 18px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color .15s, color .15s, box-shadow .15s; }
+.plugin-settings-tabs [role="tab"]:hover:not(:disabled) { background: var(--light); color: var(--green); }
+.plugin-settings-tabs [role="tab"][aria-selected="true"] { background: var(--surface); border-color: var(--line); color: var(--green); font-weight: 600; box-shadow: 0 1px 3px rgba(38, 50, 27, .06); }
+.plugin-settings-tabs [role="tab"]:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.plugin-settings-tabs [role="tab"]:disabled { cursor: default; opacity: .6; }
+.plugin-market-loading { padding: 16px; margin: 16px 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.plugin-market-loading p { margin: 0 0 12px; }
+.plugin-market-loading-track { position: relative; height: 5px; overflow: hidden; border-radius: 999px; background: var(--light); }
+.plugin-market-loading-track span { display: block; width: 35%; height: 100%; border-radius: inherit; background: var(--green); animation: plugin-market-loading 1.2s ease-in-out infinite; }
+@keyframes plugin-market-loading { from { transform: translateX(-100%); } to { transform: translateX(386%); } }
+@media (prefers-reduced-motion: reduce) { .plugin-market-loading-track span { animation: none; margin-left: 32.5%; } .plugin-settings-tabs [role="tab"] { transition: none; } }
+.plugin-market-tools { display: flex; gap: 10px; align-items: center; }
+.plugin-market-tools input { flex: 1; min-width: 0; padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; color: var(--ink); }
+.plugin-market-card .plugin-card-head > button { flex: 0 0 auto; }
+.plugin-market-card p { overflow-wrap: anywhere; }
+.plugin-market-source { overflow-wrap: anywhere; }
+.plugin-market-pages { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 12px 0; }
+.plugin-market-pages > .plugin-muted { margin-right: auto; }
+.plugin-market-progress { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; }
+.plugin-market-progress progress { flex: 1; min-width: 80px; height: 6px; accent-color: var(--green); }

@@ -17,7 +17,7 @@ export function WorkspaceShell() {
             <img className={"brand-mark"} src={"/icon-64.png"} alt={""} width={"38"} height={"38"} />
             {"\n      "}
             <span className={"name"}>
-              {"LockNote.ai"}
+              {"LockNote.app"}
             </span>
             {"\n      "}
             <span className={"sub"} data-i18n={"AI 原生笔记库，让想法有处安放"}>

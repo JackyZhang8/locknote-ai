@@ -75,7 +75,7 @@ func streamMarkdownZIP(parent context.Context, output io.Writer, total int,
 		}
 		return ctx.Err()
 	}
-	readme := fmt.Sprintf("# LockNote.ai export\n\nExported at: %s\nNotes: %d\n\nEvery note is a Markdown document with a versioned Locknote metadata footer.\n", time.Now().Format(time.RFC3339), total)
+	readme := fmt.Sprintf("# LockNote.app export\n\nExported at: %s\nNotes: %d\n\nEvery note is a Markdown document with a versioned Locknote metadata footer.\n", time.Now().Format(time.RFC3339), total)
 	if err := writeZipEntry(zw, "README.md", readme); err != nil {
 		return err
 	}

@@ -5,8 +5,10 @@ import { pluginRuntime } from './runtime'
 import type { PluginInstallPreview, RegisteredSetting } from './types'
 import { t, errorMessage } from './ui-text'
 import './plugins.css'
+import { PluginMarket } from './PluginMarket'
+import type { MarketPlugin, MarketRelease } from './market'
 
-type DialogState = { kind: 'install'; file: File; preview: PluginInstallPreview; manifest: PluginInstallPreview['manifest'] } | { kind: 'uninstall' | 'logs' | 'settings'; id: string }
+type DialogState = { kind: 'install'; file: File | { token: string }; preview: PluginInstallPreview; manifest: PluginInstallPreview['manifest'] } | { kind: 'uninstall' | 'logs' | 'settings'; id: string }
 type InstallResult = { manifest: PluginInstallPreview['manifest']; action: PluginInstallPreview['action']; enabled: boolean; error?: string }
 
 export function installSuccessText(action: PluginInstallPreview['action']) {
@@ -18,7 +20,7 @@ export function installSuccessText(action: PluginInstallPreview['action']) {
   }
 }
 
-export async function installPluginWithFeedback(file: File, preview: PluginInstallPreview, enable: boolean): Promise<InstallResult> {
+export async function installPluginWithFeedback(file: File | { token: string }, preview: PluginInstallPreview, enable: boolean): Promise<InstallResult> {
   const record = await pluginRuntime.install(file, preview)
   const result: InstallResult = { manifest: record.manifest, action: preview.action, enabled: record.enabled }
   if (enable) {
@@ -143,6 +145,14 @@ export function PluginConfiguration({ id, onClose }: { id: string; onClose(): vo
 export function PluginSettings() {
   const state = useSyncExternalStore(pluginRuntime.subscribe, pluginRuntime.getSnapshot, pluginRuntime.getSnapshot)
   const fileInput = useRef<HTMLInputElement>(null)
+  const [tab, setTab] = useState<'installed' | 'market'>('installed')
+  const [marketOpened, setMarketOpened] = useState(false)
+  const pendingToken = useRef('')
+  function discardPrepared() {
+    const token = pendingToken.current;pendingToken.current = ''
+    if (token) void pluginRuntime.api(`/market/prepared/${encodeURIComponent(token)}`, { method: 'DELETE' }).catch(() => {})
+  }
+  useEffect(() => () => { discardPrepared() }, [])
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const [success, setSuccess] = useState<InstallResult | null>(null)
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [dragging, setDragging] = useState(false)
@@ -154,11 +164,23 @@ export function PluginSettings() {
     setBusy(true); setError('')
     try { await action() } catch (reason) { setError(errorMessage(reason)) } finally { setBusy(false) }
   }
+  async function prepareMarket(plugin: MarketPlugin, release: MarketRelease, signal: AbortSignal) {
+    if (busy) return
+    setBusy(true);setError('')
+    try {
+      const result = await pluginRuntime.api<{ token: string; preview: PluginInstallPreview }>('/market/prepare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: plugin.id, version: release.version, sha256: release.sha256 }), signal })
+      if (signal.aborted) { void pluginRuntime.api(`/market/prepared/${result.token}`, { method: 'DELETE' }).catch(() => {});return }
+      discardPrepared();pendingToken.current = result.token
+      setEnableAfterInstall(false);setAcknowledgeDowngrade(false)
+      setDialog({ kind: 'install', file: { token: result.token }, preview: result.preview, manifest: result.preview.manifest })
+    } finally { setBusy(false) }
+  }
   async function preview(file: File) {
+    setTab('installed')
     if (!file.name.toLowerCase().endsWith('.zip')) { setError(t('请选择插件 ZIP 安装包', 'Choose a plugin ZIP package')); return }
     await perform(async () => { const result = await pluginRuntime.previewInstall(file); setEnableAfterInstall(false); setAcknowledgeDowngrade(false); setDialog({ kind: 'install', file, preview: result, manifest: result.manifest }) })
   }
-  function closeDialog() { if (!busy) setDialog(null) }
+  function closeDialog() { if (!busy) { discardPrepared();setDialog(null) } }
   const selected = dialog && dialog.kind !== 'install' ? state.records.find(record => record.manifest.id === dialog.id) : undefined
   return <div className="plugin-settings" onDragEnter={event => { event.preventDefault(); event.stopPropagation(); document.body.classList.remove('file-drop-active'); setDragging(true) }} onDragOver={event => { event.preventDefault(); event.stopPropagation() }} onDragLeave={event => { event.stopPropagation(); if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false) }} onDrop={event => {
     event.preventDefault(); event.stopPropagation(); setDragging(false); document.body.classList.remove('file-drop-active')
@@ -168,13 +190,19 @@ export function PluginSettings() {
     void preview(files[0])
   }}>
     <div className="plugin-settings-head set-section"><div><h3>{t('插件', 'Plugins')}</h3><p className="set-hint">{t('扩展侧栏、面板与笔记工作流。插件代码在本应用中运行，仅安装可信来源。', 'Extend sidebars, panels and note workflows. Plugins run inside this app; install only trusted code.')}</p></div>
-      <button className="ghost-btn" disabled={!state.available || busy} onClick={() => fileInput.current?.click()}>{t('从文件安装', 'Install from file')}</button></div>
+    </div>
     {!state.available && <p className="plugin-safe" role="status">{t('插件管理仅在桌面应用中提供。浏览器界面不会加载第三方插件。', 'Plugin management is available in the desktop app. Browser sessions do not load third-party plugins.')}</p>}
     {state.errors.host && <div className="plugin-error" role="alert"><p>{t('插件管理初始化失败：', 'Plugin initialization failed: ')}{state.errors.host}</p><p>{t('请尝试刷新；如仍失败，退出后使用 -safe-plugins 参数启动，并检查插件目录。', 'Try Refresh. If the problem persists, quit and launch with -safe-plugins, then check the plugin directory.')}</p></div>}
     {state.safeMode && <div className="plugin-safe"><strong>{t('插件安全模式', 'Plugin safe mode')}</strong><p className="plugin-muted">{t('本次启动未执行第三方插件。可先禁用问题插件，再恢复加载。', 'Third-party plugins were not executed this session. Disable problematic plugins before resuming.')}</p><button className="ghost-btn" disabled={busy} onClick={() => void perform(() => pluginRuntime.exitSafeMode())}>{t('恢复插件加载', 'Resume plugin loading')}</button></div>}
     <input ref={fileInput} type="file" accept=".zip,application/zip" hidden onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (file) void preview(file) }} />
-    <button className={`plugin-drop${dragging ? ' dragging' : ''}`} disabled={!state.available || busy} onClick={() => fileInput.current?.click()}><strong>{busy ? t('正在处理…', 'Processing…') : t('将插件 ZIP 拖到这里，或点击选择文件', 'Drop a plugin ZIP here, or choose a file')}</strong><span className="plugin-muted">{t('安装前会显示插件信息；默认保持禁用。', 'Review plugin details before installation. Installed plugins are disabled by default.')}</span></button>
+    <div className="plugin-settings-tabs" role="tablist" aria-label={t('插件管理', 'Plugin management')}>
+      <button id="plugin-installed-tab" type="button" role="tab" aria-selected={tab === 'installed'} aria-controls="plugin-installed-panel" disabled={busy} onClick={() => setTab('installed')}>{t('已安装', 'Installed')} · {state.records.length}</button>
+      <button id="plugin-market-tab" type="button" role="tab" aria-selected={tab === 'market'} aria-controls="plugin-market-panel" disabled={busy} onClick={() => { setTab('market');setMarketOpened(true) }}>{t('插件市场', 'Plugin market')}</button>
+    </div>
     {error && <p role="alert" className="plugin-error">{error}</p>}
+    <div id="plugin-market-panel" role="tabpanel" aria-labelledby="plugin-market-tab" hidden={tab !== 'market'}>{marketOpened && <PluginMarket records={state.records} available={state.available} busy={busy} onPrepare={prepareMarket} />}</div>
+    <div id="plugin-installed-panel" role="tabpanel" aria-labelledby="plugin-installed-tab" hidden={tab !== 'installed'}>
+    <button className={`plugin-drop${dragging ? ' dragging' : ''}`} disabled={!state.available || busy} onClick={() => fileInput.current?.click()}><strong>{busy ? t('正在处理…', 'Processing…') : t('将插件 ZIP 拖到这里，或点击选择文件', 'Drop a plugin ZIP here, or choose a file')}</strong><span className="plugin-muted">{t('安装前会显示插件信息；默认保持禁用。', 'Review plugin details before installation. Installed plugins are disabled by default.')}</span></button>
     <div className="plugin-actions"><button className="ghost-btn" disabled={!state.available || busy} onClick={() => void perform(() => pluginRuntime.refresh())}>{t('刷新', 'Refresh')}</button><button className="ghost-btn" disabled={!state.available || busy || !state.records.some(record => record.enabled)} onClick={() => void perform(() => pluginRuntime.disableAll())}>{t('禁用全部插件', 'Disable all plugins')}</button><button className="ghost-btn" disabled={!state.available} onClick={() => void perform(async () => { await pluginRuntime.setSafeMode(true); window.location.reload() })}>{t('以安全模式重启界面', 'Reload in safe mode')}</button></div>
     {state.directory && <p className="plugin-directory"><span className="plugin-muted">{t('插件目录：', 'Plugin directory: ')}</span><code>{state.directory}</code> <button onClick={() => void perform(() => navigator.clipboard.writeText(state.directory))}>{t('复制路径', 'Copy path')}</button> <button onClick={() => void perform(async () => { const desktop = (window as unknown as { go?: { main?: { desktop?: { OpenPluginDirectory?(): Promise<void> } } } }).go?.main?.desktop; if (!desktop?.OpenPluginDirectory) throw new Error(t('当前环境无法打开目录', 'Cannot open the directory in this environment')); await desktop.OpenPluginDirectory() })}>{t('打开插件目录', 'Open plugin directory')}</button></p>}
     {state.loading && <p role="status" className="plugin-muted">{t('正在读取插件…', 'Loading plugins…')}</p>}
@@ -186,9 +214,10 @@ export function PluginSettings() {
       {pluginError && <p className="plugin-error">{pluginError}</p>}
       <div className="plugin-actions"><button className="ghost-btn" onClick={() => setDialog({ kind: 'settings', id: manifest.id })}>{t('设置', 'Settings')}</button><button className="ghost-btn" onClick={() => setDialog({ kind: 'logs', id: manifest.id })}>{t('查看日志', 'View logs')}</button><button className="ghost-btn" disabled={busy} onClick={() => { setDeleteData(false); setDialog({ kind: 'uninstall', id: manifest.id }) }}>{t('卸载', 'Uninstall')}</button></div>
     </article> })}
+    </div>
     {success && <PluginDialog title={installSuccessText(success.action)} onClose={() => setSuccess(null)}><PluginInstallSuccess result={success} onClose={() => setSuccess(null)} /></PluginDialog>}
     {dialog && <PluginDialog title={dialog.kind === 'install' ? installActionText(dialog.preview.action) : dialog.kind === 'uninstall' ? t('卸载插件', 'Uninstall plugin') : dialog.kind === 'settings' ? `${(selected ? localizeManifest(selected.manifest).name : dialog.id)} · ${t('设置', 'Settings')}` : `${(selected ? localizeManifest(selected.manifest).name : dialog.id)} · ${t('日志', 'Logs')}`} onClose={closeDialog}>
-      {dialog.kind === 'install' && <><h4>{localizeManifest(dialog.manifest).name} · v{dialog.manifest.version}</h4><p className="plugin-muted">{dialog.manifest.author || dialog.manifest.id}</p><p>{localizeManifest(dialog.manifest).description}</p><PluginInstallDetails preview={dialog.preview} /><p className="plugin-muted">{t('声明能力：', 'Declared capabilities: ')}{dialog.manifest.capabilities.join(', ') || '—'}</p><p className="plugin-warning">{t('该插件将在应用中执行代码，可能读取笔记、访问网络或影响应用运行。能力声明不是安全沙箱，请仅安装你信任的插件。相同 ID 的插件将更新，原有配置保留。', 'This plugin executes code inside the app and may read notes, access the network, or affect the app. Capability declarations are not a security sandbox. Install only plugins you trust. An existing plugin with the same ID will be updated; its configuration is retained.')}</p>{dialog.preview.action === 'downgrade' && <label className="plugin-switch"><input type="checkbox" checked={acknowledgeDowngrade} onChange={event => setAcknowledgeDowngrade(event.target.checked)} />{t('我已了解降级可能造成配置不兼容', 'I understand the configuration compatibility risk')}</label>}<label className="plugin-switch"><input type="checkbox" disabled={busy || dialog.preview.action === 'identical'} checked={enableAfterInstall} onChange={event => setEnableAfterInstall(event.target.checked)} />{t('安装后启用', 'Enable after installation')}</label><footer><button className="ghost-btn" disabled={busy} onClick={closeDialog}>{t('取消', 'Cancel')}</button><button className="primary" disabled={busy || dialog.preview.action === 'identical' || (dialog.preview.action === 'downgrade' && !acknowledgeDowngrade)} onClick={() => void perform(async () => { const result = await installPluginWithFeedback(dialog.file, dialog.preview, enableAfterInstall); setDialog(null); setSuccess(result) })}>{dialog.preview.action === 'upgrade' ? t('确认升级', 'Upgrade') : dialog.preview.action === 'downgrade' ? t('确认降级', 'Downgrade') : dialog.preview.action === 'replace' ? t('确认替换', 'Replace') : dialog.preview.action === 'identical' ? t('已安装', 'Installed') : t('信任并安装', 'Trust and install')}</button></footer></>}
+      {dialog.kind === 'install' && <><h4>{localizeManifest(dialog.manifest).name} · v{dialog.manifest.version}</h4><p className="plugin-muted">{dialog.manifest.author || dialog.manifest.id}</p><p>{localizeManifest(dialog.manifest).description}</p><PluginInstallDetails preview={dialog.preview} /><p className="plugin-muted">{t('声明能力：', 'Declared capabilities: ')}{dialog.manifest.capabilities.join(', ') || '—'}</p><p className="plugin-warning">{t('该插件将在应用中执行代码，可能读取笔记、访问网络或影响应用运行。能力声明不是安全沙箱，请仅安装你信任的插件。相同 ID 的插件将更新，原有配置保留。', 'This plugin executes code inside the app and may read notes, access the network, or affect the app. Capability declarations are not a security sandbox. Install only plugins you trust. An existing plugin with the same ID will be updated; its configuration is retained.')}</p>{dialog.preview.action === 'downgrade' && <label className="plugin-switch"><input type="checkbox" checked={acknowledgeDowngrade} onChange={event => setAcknowledgeDowngrade(event.target.checked)} />{t('我已了解降级可能造成配置不兼容', 'I understand the configuration compatibility risk')}</label>}<label className="plugin-switch"><input type="checkbox" disabled={busy || dialog.preview.action === 'identical'} checked={enableAfterInstall} onChange={event => setEnableAfterInstall(event.target.checked)} />{t('安装后启用', 'Enable after installation')}</label><footer><button className="ghost-btn" disabled={busy} onClick={closeDialog}>{t('取消', 'Cancel')}</button><button className="primary" disabled={busy || dialog.preview.action === 'identical' || (dialog.preview.action === 'downgrade' && !acknowledgeDowngrade)} onClick={() => void perform(async () => { const result = await installPluginWithFeedback(dialog.file, dialog.preview, enableAfterInstall); pendingToken.current = ''; setDialog(null); setSuccess(result) })}>{dialog.preview.action === 'upgrade' ? t('确认升级', 'Upgrade') : dialog.preview.action === 'downgrade' ? t('确认降级', 'Downgrade') : dialog.preview.action === 'replace' ? t('确认替换', 'Replace') : dialog.preview.action === 'identical' ? t('已安装', 'Installed') : t('信任并安装', 'Trust and install')}</button></footer></>}
       {dialog.kind === 'uninstall' && <><p>{t('确定卸载', 'Uninstall')} <strong>{(selected ? localizeManifest(selected.manifest).name : dialog.id)}</strong>？{t('插件文件将被移除，笔记内容保留。', 'Plugin files will be removed. Notes will be kept.')}</p><label className="plugin-switch"><input type="checkbox" checked={deleteData} onChange={event => setDeleteData(event.target.checked)} />{t('同时删除插件配置', 'Also delete plugin configuration')}</label><footer><button className="ghost-btn" disabled={busy} onClick={closeDialog}>{t('取消', 'Cancel')}</button><button className="primary" disabled={busy} onClick={() => void perform(async () => { await pluginRuntime.uninstall(dialog.id, deleteData); setDialog(null) })}>{t('卸载', 'Uninstall')}</button></footer></>}
       {dialog.kind === 'logs' && <><pre className="plugin-log">{state.logs.filter(log => log.pluginId === dialog.id).map(log => `${log.time} [${log.level}] ${log.message}`).join('\n') || t('本次会话暂无日志。', 'No logs in this session.')}</pre><footer><button className="ghost-btn" onClick={closeDialog}>{t('关闭', 'Close')}</button></footer></>}
       {dialog.kind === 'settings' && <PluginConfiguration id={dialog.id} onClose={closeDialog} />}

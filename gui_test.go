@@ -94,7 +94,7 @@ func TestDesktopAssetChain(t *testing.T) {
 	if index.Code != http.StatusOK {
 		t.Fatalf("GET / => %d", index.Code)
 	}
-	if !strings.Contains(index.Body.String(), "LockNote.ai") {
+	if !strings.Contains(index.Body.String(), "LockNote.app") {
 		t.Error("首页应该是界面本身")
 	}
 
