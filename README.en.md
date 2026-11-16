@@ -4,11 +4,15 @@
 
 **A local-first Markdown notes app where you and AI share one knowledge base.**
 
-[简体中文](README.md) · English · [Downloads / Releases](https://github.com/JackyZhang8/locknote-ai/releases) · [MIT License](LICENSE)
+[简体中文](README.md) · English · [Downloads / Releases](https://github.com/JackyZhang8/locknote-ai/releases) · [Changelog](CHANGELOG.md) · [MIT License](LICENSE)
 
 Locknote AI combines a desktop workspace, browser interface, and MCP server in one application. Edit notes yourself or let AI read, organize, and update documents. Data stays in a local SQLite database; no cloud account is required.
 
 > Notes are stored in plaintext without database encryption. The product is called Locknote AI; existing commands, the Go module, and the default data directory still use locknote-mcp.
+
+## What’s New in v0.1.1
+
+A desktop plugin system with AI Assistant, Outline, and Note Checker examples. The assistant supports multi-turn chat, session recovery after restart, and reviewable note edits. History now offers side-by-side diffs, synchronized scrolling, and revision-safe restoration. See the [changelog](CHANGELOG.md) for details and upgrade notes.
 
 ## Origins and the Encrypted Edition
 
@@ -21,7 +25,7 @@ This edition focuses on AI collaboration, with an integrated MCP server that let
 - **Markdown workspace**: editing and reading modes, notebooks, multiple tags, full-text search, pinned notes, and batch actions.
 - **Diagram previews**: SVG, Mermaid, and flowchart with source/preview switching. Mermaid is bundled locally for offline use.
 - **AI integration**: MCP over HTTP or stdio, 14 tools, resources, and prompt templates. The activity list only shows MCP tool operations.
-- **Version recovery**: up to 20 historical versions, with title, word count, and body comparisons before restoring. Empty placeholder notes do not generate history; consecutive UI edits within 30 seconds share a recovery point.
+- **Version recovery**: up to 20 historical versions, side-by-side comparisons between revisions, colored changes, synchronized scrolling, and change navigation. Restoration requires confirmation and revision checks. Empty placeholder notes do not generate history; consecutive UI edits within 30 seconds share a recovery point.
 - **Import and export**: Markdown and ZIP, drag-and-drop import, and options to skip, replace, or keep duplicate notes.
 - **Trash**: deletion confirmation, a short undo window, and cancellable cleanup with progress and a separate transaction per note. Permanent deletion cannot be undone.
 - **Desktop controls**: remembered window state, resizable panes, title-bar double-click to maximize/restore, and save checks before closing.
@@ -109,7 +113,7 @@ Import Markdown or ZIP from **Settings → Data & Backup**, or drag files into t
 
 Full exports use a dedicated read-only snapshot and a bounded queue to compress batches directly into ZIP, without intermediate Markdown files or loading all note bodies into memory. Editing can continue during export; cancellation stops further reads. The browser still buffers the compressed ZIP before saving.
 
-Markdown backups do not include empty notebooks, unused tags, version history, preferences, or tokens. Use a database backup for a complete copy of the database.
+Markdown backups do not include empty notebooks, unused tags, version history, preferences, or tokens. Database backups preserve database contents, but exclude plugin files, plugin settings, and AI conversations; back up `plugins/` in the data directory separately. Pending plugin suggestions are stored in local WebView storage and are also excluded from database backups.
 
 ### Database Backup
 
@@ -139,7 +143,23 @@ Quit the app before restoring and retain a backup of the current database. Datab
 
 The desktop app supports ZIP installation, enable/disable, settings, logs, and removal under **Settings → Plugins**. Plugins can add sidebars, workspace tabs, bottom panels, commands, menus, and editor actions. Install only trusted plugins: same-page code may read notes and access the network; capability declarations are not a security sandbox. Browser sessions do not load plugins.
 
-Try the [outline sidebar](examples/plugins/outline/README.md) and [note checker](examples/plugins/note-checker/README.md) development examples. See the [plugin developer guide (Chinese)](docs/plugin-development.md) and [TypeScript SDK](sdk/plugin-api/README.md) for packaging, API contracts, and recovery.
+Installation distinguishes upgrades, replacements, and downgrades for the same plugin ID and asks for confirmation. Enabled plugin entries return after restart, and plugins can follow the application language.
+
+| Example | Purpose |
+| --- | --- |
+| [AI Assistant](examples/plugins/ai-assistant/README.md) | Right-side chat, provider settings, note search, and edit review |
+| [Outline](examples/plugins/outline/README.md) | Heading navigation, level filtering, and line navigation |
+| [Note Checker](examples/plugins/note-checker/README.md) | Background checks, a bottom panel, and revision-safe cleanup |
+
+Build and install the example ZIPs using the commands in their documentation. See the [plugin developer guide (Chinese)](docs/plugin-development.md) and [TypeScript SDK](sdk/plugin-api/README.md) for packaging, API contracts, and safe startup.
+
+### AI Assistant
+
+After installation and activation, configure an OpenAI-compatible provider, API key, and model in the right panel. The default model is `deepseek-flash`; connection testing and model discovery are available. The assistant uses the current note as context and can search and read other notes in chunks. Multi-turn conversations are saved locally as JSONL; restarting restores the latest session so you can continue chatting.
+
+Proposed edits open in the host diff view, where you can edit, apply, discard, or retain them for later. Notes are written only after successful application. Applying and undoing changes check revisions to protect later edits. A retained suggestion is not a saved note.
+
+Relevant notes and messages are sent to your configured provider. API keys and conversations are stored locally in plaintext; protect and back them up as needed. See [history comparison (Chinese)](docs/history-comparison.md) for detailed comparison controls.
 
 ## Development
 
@@ -160,6 +180,11 @@ The frontend uses React 18, TypeScript 5, Vite 5, and Tailwind CSS 3. The backen
 | internal/store/ | SQLite, notes, notebooks, tags, history, and indexes |
 | internal/api/ | REST, import/export, and events |
 | internal/mcp/ | MCP tools, resources, prompts, and transports |
+| internal/plugins/ | Plugin installation, state, provider requests, and conversations |
+| frontend/src/plugins/ | Plugin runtime, views, and change review |
+| sdk/plugin-api/ | TypeScript SDK types and API documentation |
+| examples/plugins/ | Three buildable plugin examples |
+| tools/plugin-pack/ | Plugin ZIP packaging tool |
 | internal/textutil/ | Markdown text helpers |
 | frontend/src/ | React UI, styles, business controllers, and diagram previews |
 | frontend/public/ | Icons and offline Mermaid dependencies |
@@ -175,7 +200,7 @@ The server listens on loopback by default. MCP HTTP requires a Bearer token; RES
 
 ## Version Management
 
-Maintain the application version only in the root `VERSION` file. The frontend build synchronizes Wails packaging metadata; the UI, CLI, and MCP share this version. Run `npm --prefix frontend run build` before invoking `wails build` directly. Release tags must match `VERSION`.
+Maintain the application version only in the root `VERSION` file. The frontend build synchronizes Wails packaging metadata; the UI, CLI, and MCP share this version. Run `npm --prefix frontend run build` before invoking `wails build` directly. Release tags must match `VERSION` (`v0.1.1` for this release).
 
 ## License
 

@@ -4,11 +4,15 @@
 
 **本地优先的 Markdown 笔记应用，让你和 AI 在同一个知识库中协作。**
 
-简体中文 · [English](README.en.md) · [下载 / Releases](https://github.com/JackyZhang8/locknote-ai/releases) · [MIT 许可证](LICENSE)
+简体中文 · [English](README.en.md) · [下载 / Releases](https://github.com/JackyZhang8/locknote-ai/releases) · [更新日志](CHANGELOG.md) · [MIT 许可证](LICENSE)
 
 Locknote AI 将桌面工作区、浏览器界面和 MCP 服务集成到一个应用。你可以编辑笔记，也可以让 AI 读取、整理和更新文档。数据保存在本机 SQLite 中，无需云端账号。
 
 > 笔记以明文存储，不提供数据库加密。产品名为 Locknote AI；现有命令、Go 模块及默认数据目录仍使用 locknote-mcp。
+
+## v0.1.1 更新亮点
+
+新增桌面插件系统及 AI 助手、大纲、笔记检查三个示例；AI 助手支持多轮对话、重启恢复会话和笔记改动审阅。历史版本支持并排差异、同步滚动和安全恢复。完整变更与升级说明见 [CHANGELOG](CHANGELOG.md)。
 
 ## 项目来源与加密版本
 
@@ -21,7 +25,7 @@ Locknote AI 基于 [Locknote 加密版本](https://github.com/JackyZhang8/lockno
 - **Markdown 工作区**：编辑与阅读模式、笔记本、多标签、全文搜索、置顶和批量操作。
 - **图形预览**：SVG、Mermaid、flowchart，支持源码／预览切换；Mermaid 本地打包，离线可用。
 - **AI 协作**：内置 MCP HTTP／stdio、14 个工具、资源和提示模板，活动列表仅显示 MCP 工具操作。
-- **历史恢复**：最近 20 个历史版本，恢复前比较标题、字数和正文。空白占位笔记不生成历史，30 秒内连续界面编辑合并恢复点。
+- **历史恢复**：最近 20 个历史版本，支持任意版本并排对比、增删配色、同步滚动与差异定位，恢复前确认并校验版本。空白占位笔记不生成历史，30 秒内连续界面编辑合并恢复点。
 - **导入导出**：Markdown 和 ZIP，支持拖拽导入；重复笔记可跳过、覆盖或保留两份。
 - **回收站**：删除确认、短时撤销、逐篇事务清空、进度与取消。永久删除不可撤销。
 - **桌面体验**：窗口状态记忆、可调分栏、顶部栏双击最大化／还原、关闭前保存检查。
@@ -109,7 +113,7 @@ save_note 支持稳定的 external_id；if_exists 可选 append（默认）、re
 
 整库导出使用独立只读快照，分批读取并通过有界队列直接压缩到 ZIP，不生成中间 MD 文件，也不把全部正文读入内存。导出期间可继续编辑；取消会停止后续读取。浏览器保存下载时仍会缓存压缩后的 ZIP。
 
-Markdown 备份不包含空笔记本、未使用标签、历史版本、偏好设置或令牌。完整备份请使用数据库备份。
+Markdown 备份不包含空笔记本、未使用标签、历史版本、偏好设置或令牌。数据库备份可保留数据库内的数据，但不包含插件文件、插件配置或 AI 聊天记录；这些文件需另行备份数据目录中的 `plugins/`。待应用的插件建议稿保存在本机 WebView 存储中，也不属于数据库备份。
 
 ### 完整数据库备份
 
@@ -139,7 +143,23 @@ sqlite3 ~/.locknote-mcp/locknote.db
 
 桌面应用在 **设置 → 插件** 中支持 ZIP 拖入安装、启用、禁用、配置、日志与卸载。插件可扩展左右侧栏、主工作区标签页、底部面板、命令、菜单和编辑器操作。仅安装可信插件：同页面代码可以读取笔记和访问网络，能力声明不构成安全沙箱。浏览器默认不加载插件。
 
-开发示例为 [大纲侧栏](examples/plugins/outline/README.md) 和 [笔记检查面板](examples/plugins/note-checker/README.md)。打包、SDK、API 和恢复方式见 [插件开发指南](docs/plugin-development.md)。
+同 ID 插件安装时区分升级、替换和降级，并在确认后处理；重启恢复已启用插件的入口。插件支持跟随应用切换中英文。
+
+| 示例 | 用途 |
+| --- | --- |
+| [AI 助手](examples/plugins/ai-assistant/README.md) | 右侧聊天、Provider 配置、笔记检索与改动审阅 |
+| [大纲侧栏](examples/plugins/outline/README.md) | 标题导航、层级筛选与行定位 |
+| [笔记检查](examples/plugins/note-checker/README.md) | 后台检查、底部面板及版本安全的格式整理 |
+
+示例需自行打包后拖入安装，命令见各示例文档。插件开发、打包与安全启动见 [插件开发指南](docs/plugin-development.md)，接口类型见 [TypeScript SDK](sdk/plugin-api/README.md)。
+
+### AI 助手
+
+安装并启用后，在右侧面板配置 OpenAI 兼容 Provider、API Key 和模型，默认模型为 `deepseek-flash`；可测试连接并获取模型列表。助手以当前笔记为上下文，按需搜索和分块读取其他笔记，支持多轮对话。聊天按会话保存为本地 JSONL，重启恢复最近会话并可继续对话。
+
+笔记改动先进入宿主差异视图，可编辑、应用或丢弃，也可保留建议稿稍后处理；只有应用成功后才写入笔记。应用与撤回均检查版本，避免覆盖后续编辑。建议稿不是已保存笔记。
+
+调用模型时，相关笔记及聊天内容会发送到你配置的 Provider；API Key 与聊天记录在本机明文保存，请按需备份并保护这些文件。历史版本对比的操作说明见 [历史版本对比](docs/history-comparison.md)。
 
 ## 开发
 
@@ -160,6 +180,11 @@ wails build -skipbindings
 | internal/store/ | SQLite、笔记、分类、标签、历史和索引 |
 | internal/api/ | REST、导入导出和事件 |
 | internal/mcp/ | MCP 工具、资源、提示和传输 |
+| internal/plugins/ | 插件安装、状态、Provider 请求及会话存储 |
+| frontend/src/plugins/ | 插件运行时、视图与改动审阅 |
+| sdk/plugin-api/ | TypeScript SDK 类型与接口说明 |
+| examples/plugins/ | 三个可打包的开发示例 |
+| tools/plugin-pack/ | 插件 ZIP 打包工具 |
 | internal/textutil/ | Markdown 文本辅助处理 |
 | frontend/src/ | React 页面、样式、业务控制器及图形预览 |
 | frontend/public/ | 图标与离线 Mermaid 依赖 |
@@ -175,7 +200,7 @@ wails build -skipbindings
 
 ## 版本维护
 
-版本号统一在根目录 `VERSION` 中维护。只修改该文件；前端构建会自动同步 `wails.json` 中的打包版本，界面、CLI 和 MCP 使用同一版本。手动运行 `wails build` 前先执行 `npm --prefix frontend run build`，发布标签必须与 `VERSION` 一致。
+版本号统一在根目录 `VERSION` 中维护。只修改该文件；前端构建会自动同步 `wails.json` 中的打包版本，界面、CLI 和 MCP 使用同一版本。手动运行 `wails build` 前先执行 `npm --prefix frontend run build`，发布标签必须与 `VERSION` 一致（本版本为 `v0.1.1`）。
 
 ## 许可证
 
