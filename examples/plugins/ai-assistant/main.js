@@ -2,6 +2,7 @@ import { createAssistant, normalizeProvider } from './engine.js';
 import { captureMessageAnchor, restoreMessageAnchor } from './scroll-anchor.js';
 import { createChangeHints } from './change-hints.js';
 import { createJournal } from './journal.js';
+import { createConversationTitles } from './conversation-title.js';
 import { validateProvider, mountProviderForm } from './provider.js';
 
 /** @param {import('../../../sdk/plugin-api').PluginContext} ctx */
@@ -11,6 +12,14 @@ async function activate(ctx) {
   let messages = [], active = null, pendingChange = null, status = '', failure = '', notice = '', usage = null, includeCurrentNote = true, disposed = false;
   const journal = ctx.conversations ? createJournal(ctx.conversations) : null;
   let historyBusy = false, generation = 0, recoveryFailed = false;
+  const generatedTitles = new Map(), historyTitleRenders = new Set();
+  const conversationTitles = createConversationTitles({
+    request: (input, options) => ctx.ai.chatCompletion(input, options),
+    save: (id, title) => journal.rename(id, title),
+    isCurrent: id => !disposed && !active && journal?.current?.id === id,
+    defer: ctx.timers ? (fn, delay) => ctx.timers.setTimeout(fn, delay) : undefined,
+    onSaved(id, title) { generatedTitles.set(id, title);for (const render of historyTitleRenders) render(id, title); },
+  });
   const changeHints = createChangeHints();
   const renders = new Set();
   const refresh = () => { for (const render of renders) render(); };
@@ -33,16 +42,16 @@ async function activate(ctx) {
     },
   });
   function applyHistory(loaded) {
-    recoveryFailed = true;
+    conversationTitles.cancel();recoveryFailed = true;
     assistant.clear();if (loaded.checkpoint) assistant.restore(loaded.checkpoint.state, loaded.checkpoint.interrupted);
     recoveryFailed = false;
     messages = loaded.messages;generation++;usage = loaded.checkpoint?.state?.usage || null;
     notice = loaded.interrupted || loaded.recovered ? tr('上次会话中断，已恢复记录。未完成操作不会自动执行。', 'Previous session interrupted. History restored; unfinished actions will not run automatically.') : '';
   }
   if (journal) { try { applyHistory(await journal.initialize()); } catch (error) { recoveryFailed = true;failure = tr('聊天恢复失败：', 'Chat recovery failed: ') + String(error.message || error); } }
-  function stop() { active?.abort();settleChange(false); }
+  function stop() { conversationTitles.cancel();active?.abort();settleChange(false); }
   function mountProvider(container) {
-    return mountProviderForm(container, { ctx, config, tr, el, button, onSave(provider) { config = provider; } });
+    return mountProviderForm(container, { ctx, config, tr, el, button, onSave(provider) { conversationTitles.cancel();config = provider; } });
   }
   function mount(container) {
     container.classList.add('ln-ai-assistant');
@@ -84,20 +93,31 @@ async function activate(ctx) {
       event.stopPropagation();
     });
     const operateHistory = async run => { if (active || historyBusy || !alive || disposed) return;historyBusy = true;failure = '';refresh();try { await run(); } catch(error) { failure = String(error.message || error); } finally { historyBusy = false;refresh(); } };
-    const reset = button(tr('新会话', 'New chat'), () => operateHistory(async () => { if (journal) await journal.create(tr('新会话', 'New chat'));assistant.clear();recoveryFailed = false;messages = [];generation++;failure = '';notice = '';usage = null;refresh(); }));
+    const reset = button(tr('新会话', 'New chat'), () => operateHistory(async () => { conversationTitles.cancel();if (journal) { const created = await journal.create(tr('新会话', 'New chat'));conversationTitles.track(created.id); }assistant.clear();recoveryFailed = false;messages = [];generation++;failure = '';notice = '';usage = null;refresh(); }));
     const history = el('div', undefined, 'ln-ai-history');history.hidden = true;
     const historyRows = new Map();let moreHistory = null;
+    const updateHistoryTitle = (id, value) => {
+      const title = historyRows.get(id)?.children[0]?.children[0];
+      if (title) { title.textContent = value;title.title = value; }
+    };
+    historyTitleRenders.add(updateHistoryTitle);
     async function showHistory(offset = 0) {
       if (!journal) throw new Error(tr('请更新宿主以保存聊天记录', 'Update the host for persistent chats'));
       const ticket = panelGeneration, list = await journal.list(offset);if (!alive || disposed || panel !== 'history' || ticket !== panelGeneration) return;if (offset === 0) { notice = (list.warnings || []).join(' · ');refresh();historyRows.clear();moreHistory = null; }else if (moreHistory) { moreHistory.consumed = true;moreHistory = null; }
       for (const item of list.items) {
         if (historyRows.has(item.id)) continue;
         const row = el('div', undefined, 'ln-ai-history-row');
-        const open = button(item.title, () => operateHistory(async () => { applyHistory(await journal.open(item.id));setPanel(''); }));open.title = new Date(item.updatedAt).toLocaleString();
-        const title = el('input');title.value = item.title;title.maxLength = 100;title.setAttribute('aria-label', tr('会话标题', 'Conversation title'));
-        row.append(open, button(tr('重命名', 'Rename'), () => { title.hidden = false;save.hidden = false; }));
-        const save = button(tr('保存', 'Save'), () => operateHistory(async () => { await journal.rename(item.id,title.value);await showHistory(); }));title.hidden = true;save.hidden = true;row.append(title,save);
-        row.append(button(tr('删除', 'Delete'), () => operateHistory(async () => { if (!await ctx.ui.confirm(tr('确认永久删除这段聊天记录？', 'Permanently delete this conversation?'))) return;const wasCurrent = journal.current?.id === item.id;await journal.delete(item.id);if(wasCurrent){assistant.clear();recoveryFailed=false;messages=[];generation++;usage=null;}await showHistory(); })));
+        const open = button('', () => operateHistory(async () => { conversationTitles.cancel();applyHistory(await journal.open(item.id));setPanel(''); }), 'ln-ai-history-open');
+        const title = el('span', generatedTitles.get(item.id) || item.title, 'ln-ai-history-title');title.title = title.textContent;
+        const date = new Date(item.updatedAt), validDate = Number.isFinite(date.getTime());
+        const time = el('time', validDate ? date.toLocaleString(ctx.i18n.locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—', 'ln-ai-history-time');
+        if (validDate) { time.dateTime = date.toISOString();time.title = date.toLocaleString(ctx.i18n.locale); }
+        open.append(title, time);
+        const remove = button('', () => operateHistory(async () => { if (!await ctx.ui.confirm(tr('确认永久删除这段聊天记录？', 'Permanently delete this conversation?'))) return;conversationTitles.forget(item.id);generatedTitles.delete(item.id);const wasCurrent = journal.current?.id === item.id;await journal.delete(item.id);if(wasCurrent){assistant.clear();recoveryFailed=false;messages=[];generation++;usage=null;}await showHistory(); }), 'ln-ai-history-delete');
+        remove.title = tr('删除会话', 'Delete conversation');remove.setAttribute('aria-label', remove.title);
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');icon.setAttribute('viewBox', '0 0 24 24');icon.setAttribute('width', '14');icon.setAttribute('height', '14');icon.setAttribute('fill', 'none');icon.setAttribute('stroke', 'currentColor');icon.setAttribute('stroke-width', '1.7');icon.setAttribute('aria-hidden', 'true');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');path.setAttribute('d', 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7');icon.append(path);remove.append(icon);
+        row.append(open, remove);
         historyRows.set(item.id,row);
       }
       if (list.next >= 0) { const next = list.next;const more = button(tr('更多会话', 'More conversations'), () => { if (more.consumed) return;return operateHistory(() => showHistory(next)); });moreHistory = more; }
@@ -173,7 +193,9 @@ async function activate(ctx) {
     form.addEventListener('submit', async event => {
       event.preventDefault();const value = input.value.trim();if (!value || active || historyBusy || panel || !alive || disposed) return;
       if (!ctx.ai?.chatCompletion) { failure = tr('请更新宿主应用，当前版本未提供 AI 接口。', 'Update the host application to use the AI API.');render();return; }
+      conversationTitles.cancel();
       const controller = new AbortController();active = controller;failure = '';render();
+      let completed = false;
       try {
         if (recoveryFailed) throw new Error(tr('聊天恢复失败，请从历史重新打开，或新建会话。', 'Recovery failed. Reopen from history or create a new conversation.'));
         stored = await ctx.storage.get();
@@ -182,28 +204,29 @@ async function activate(ctx) {
         try { provider = validateProvider(normalizeProvider(stored.provider || {})); }
         catch (reason) { setPanel('settings');throw reason; }
         if (!journal) throw new Error(tr('请更新宿主，当前版本不支持聊天持久化。', 'Update the host to enable persistent chats.'));
-        if (!journal.current) await journal.create(value.slice(0, 40));
+        if (!journal.current) { const created = await journal.create(value.slice(0, 40));conversationTitles.track(created.id); }
         if (!alive || disposed || controller.signal.aborted) return;
         await journal.append({ type: 'turn_start' });
         await journal.append({ type: 'message', role: 'user', content: value });
         if (!alive || disposed || controller.signal.aborted) return;
         config = provider;messages.push({ role: 'user', content: value });input.value = '';log.scrollTop = log.scrollHeight;render();
         await assistant.chat(value, config, controller.signal, { includeCurrentNote });
+        completed = !controller.signal.aborted;
       }
       catch (reason) { failure = controller.signal.aborted ? tr('已停止。已确认并保存的笔记修改会保留。', 'Stopped. Confirmed and saved note changes are retained.') : String(reason.message || reason); }
-      finally { active = null;status = '';settleChange(false);refresh(); }
+      finally { active = null;status = '';settleChange(false);refresh();if (completed && alive && !disposed && journal?.current) conversationTitles.schedule({ id: journal.current.id, provider: config, messages, locale: ctx.i18n.locale }); }
     });
     input.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault();form.requestSubmit(); } });
     renders.add(render);render();void renderContext();
     const contextStops = ['note:selection', 'editor:change', 'note:change'].map(name => ctx.events.on(name, payload => { if (name === 'note:selection') { contextGeneration++;selectedNoteId = payload?.id || null;renderChanges(); }void renderContext(); }));
     contextStops.push(ctx.events.on('changes:change', renderChanges));
     const stopLanguage = ctx.events.on('language:change', () => { close.textContent = tr('关闭', 'Close');if (panel) panelTitle.textContent = panel === 'settings' ? tr('Provider 配置', 'Provider configuration') : tr('历史会话', 'Conversation history');historyButton.textContent = tr('历史', 'History');older.textContent = tr('加载更早消息', 'Load older messages');configure.textContent = tr('配置', 'Configure');reset.textContent = tr('新会话', 'New chat');send.textContent = tr('发送', 'Send');cancel.textContent = tr('停止', 'Stop');render(); });
-    return () => { alive = false;panelGeneration++;contextGeneration++;stopHintTimer?.();stopHintTimer = null;stop();stopLanguage();for (const dispose of contextStops) dispose();renders.delete(render);providerCleanup?.();container.replaceChildren(); };
+    return () => { alive = false;panelGeneration++;contextGeneration++;stopHintTimer?.();stopHintTimer = null;stop();stopLanguage();for (const dispose of contextStops) dispose();renders.delete(render);historyTitleRenders.delete(updateHistoryTitle);providerCleanup?.();container.replaceChildren(); };
   }
   ctx.views.register({ id: 'assistant', title: tr('AI 助手', 'AI Assistant'), titleKey: 'panel', location: 'right', mount });
   ctx.commands.register({ id: 'open', title: tr('打开 AI 助手', 'Open AI assistant'), titleKey: 'open', run: () => ctx.workspace.openView('assistant') });
   ctx.toolbar.register({ id: 'assistant', title: tr('AI 助手', 'AI Assistant'), titleKey: 'panel', text: 'AI', run: () => ctx.workspace.toggleView('assistant') });
   ctx.settings.register({ id: 'provider', title: tr('Provider 配置', 'Provider configuration'), titleKey: 'provider', mount: mountProvider });
-  ctx.onDispose(() => { disposed = true;stop();renders.clear();assistant.dispose();messages = [];config.apiKey = ''; });
+  ctx.onDispose(() => { disposed = true;conversationTitles.dispose();generatedTitles.clear();historyTitleRenders.clear();stop();renders.clear();assistant.dispose();messages = [];config.apiKey = ''; });
 }
 export default { activate };

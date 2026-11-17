@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-16T13:31:44Z",
+  "updatedAt": "2026-11-17T11:35:13Z",
   "plugins": [
     {
       "id": "dev.locknote.ai-assistant",
@@ -20,8 +20,23 @@
           "description": "Right-side AI chat, on-demand note reading and confirmed edits."
         }
       },
-      "latestVersion": "0.4.4",
+      "latestVersion": "0.4.5",
       "releases": [
+        {
+          "version": "0.4.5",
+          "apiVersion": 1,
+          "minAppVersion": "0.1.0",
+          "capabilities": [
+            "ui.sidebar",
+            "notes.read",
+            "notes.write",
+            "ai.chat"
+          ],
+          "file": "dev.locknote.ai-assistant-0.4.5.zip",
+          "downloadUrl": "http://cdn.relaycat.cn/locknote_plugins/dev.locknote.ai-assistant-0.4.5.zip",
+          "size": 31337,
+          "sha256": "641ca8f63b85ec48beb48c9ec13d3968141d365c211eeda3900484bafa51428a"
+        },
         {
           "version": "0.4.4",
           "apiVersion": 1,

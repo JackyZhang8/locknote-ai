@@ -112,7 +112,7 @@ test('assistant rendered chat sends messages and rejects proposed changes withou
  const previous=global.document,views=[];let writes=0,calls=0;
  function node(tag){return {tagName:tag,children:[],listeners:{},style:{},dataset:{},classList:{add(){}},textContent:'',value:'',setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn},append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items},requestSubmit(){return this.listeners.submit({preventDefault(){}})}}}
  const all=root=>[root,...root.children.flatMap(all)];
- global.document={createElement:node};
+ global.document={createElement:node,createElementNS:(_,tag)=>node(tag)};
  let cleanup;
  try{
   const current={id:'n1',title:'Note',content:'Original',version:1};
@@ -308,7 +308,7 @@ test('assistant panel restores chat after activation and continues with prior me
  function node(tag){return {tagName:tag,children:[],listeners:{},style:{},dataset:{},classList:{add(){}},textContent:'',value:'',setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn},append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items},requestSubmit(){return this.listeners.submit({preventDefault(){}})}}}
  const all=root=>[root,...root.children.flatMap(all)],events=[],requests=[];let activeId='',seq=1;
  const conversations={list:async()=>({items:activeId?[{id:activeId,title:'Chat'}]:[],activeId,next:-1}),create:async()=>{activeId='chat';return {id:'chat',seq:1}},activate:async id=>{activeId=id},read:async()=>({id:'chat',seq,before:0,events:structuredClone(events),checkpoint:structuredClone(events.findLast(e=>e.type==='checkpoint'))}),append:async(id,expected,list)=>{assert.equal(expected,seq);events.push(...list.map(e=>({...structuredClone(e),seq:++seq})));return {id,seq}}};
- global.document={createElement:node};
+ global.document={createElement:node,createElementNS:(_,tag)=>node(tag)};
  const disposers=[];
  try{
   async function boot(){const views=[],f=fixture();f.ctx.ai.chatCompletion=async request=>{requests.push(structuredClone(request));return {choices:[{message:{role:'assistant',content:'Blue notebook'}}]}};
@@ -324,7 +324,7 @@ test('assistant panel restores chat after activation and continues with prior me
 test('failed recovery cannot silently continue with an empty model history',async()=>{
  const plugin=await import(pathToFileURL(path.resolve('examples/plugins/ai-assistant/main.js')).href),previous=global.document;let calls=0;
  function node(tag){return {tagName:tag,children:[],listeners:{},style:{},dataset:{},classList:{add(){}},textContent:'',value:'',setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn},append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items},requestSubmit(){return this.listeners.submit({preventDefault(){}})}}}
- const all=root=>[root,...root.children.flatMap(all)],views=[],f=fixture();global.document={createElement:node};
+ const all=root=>[root,...root.children.flatMap(all)],views=[],f=fixture();global.document={createElement:node,createElementNS:(_,tag)=>node(tag)};
  try{
   Object.assign(f.ctx,{i18n:{locale:'zh'},storage:{get:async()=>({provider:{apiKey:'secret'}})},views:{register:v=>views.push(v)},settings:{register(){}},toolbar:{register(){}},commands:{register(){}},events:{on:()=>()=>{}},workspace:{},onDispose(){},conversations:{list:async()=>({activeId:'broken'}),read:async()=>({id:'broken',seq:2,events:[],checkpoint:{state:{invalid:true}}}),activate:async()=>{},append:async()=>({id:'broken',seq:3})}});
   f.ctx.ai.chatCompletion=async()=>{calls++;return {choices:[{message:{role:'assistant',content:'response'}}]}};
@@ -346,7 +346,9 @@ test('change hints follow the active note and expire without refreshing their li
 async function assistantPanelHarness(options={}){
  const previous=global.document,{el,all}=providerDOM(),views=[],listeners=new Map(),timers=new Set();let current={id:'n1',title:'First',content:'',version:1},changes=[];
  global.document={activeElement:null,createElement:tag=>{const item=el(tag);item.classList={add(){}};item.focus=()=>{global.document.activeElement=item};item.contains=target=>all(item).includes(target);item.querySelectorAll=()=>all(item).filter(n=>['button','input','select','textarea'].includes(n.tagName)&&!n.hidden&&!n.disabled);return item}};
+ global.document.createElementNS=(_,tag)=>global.document.createElement(tag);
  const ctx={i18n:{locale:'zh'},storage:{get:async()=>({}),set:async()=>{}},views:{register:v=>views.push(v)},settings:{register(){}},toolbar:{register(){}},commands:{register(){}},workspace:{},onDispose(){},notes:{current:async()=>current},changes:{list:()=>changes,open(){}},events:{on(name,fn){const items=listeners.get(name)||new Set();items.add(fn);listeners.set(name,items);return()=>items.delete(fn)}},timers:{setTimeout(fn){timers.add(fn);return()=>timers.delete(fn)}},conversations:{list:options.list|| (async()=>({items:Array.from({length:70},(_,i)=>({id:'c'+i,title:'Chat '+i,updatedAt:new Date().toISOString()})),activeId:'',next:-1}))}};
+ Object.assign(ctx, options.ctx || {});
  const plugin=await import(pathToFileURL(path.resolve('examples/plugins/ai-assistant/main.js')).href);await plugin.default.activate(ctx);const root=global.document.createElement('div'),cleanup=views[0].mount(root);
  const emit=(name,value)=>{for(const fn of listeners.get(name)||[])fn(value)};
  return {root,all,find:cls=>all(root).find(n=>n.className===cls),click:async text=>{const b=all(root).find(n=>n.tagName==='button'&&n.textContent===text);assert.ok(b,text);return b.listeners.click({target:b})},select(note){current=note;emit('note:selection',note)},changes(value){changes=value;emit('changes:change')},emit,timers,cleanup(){cleanup();global.document=previous}};
@@ -444,3 +446,35 @@ test('provider settings use explicit revision and keep configuration unchanged o
  assert.equal(revision,'original');assert.equal(applied,0);assert.equal(legacyWrites,0)
  assert.ok(all(root).some(item=>item.textContent.includes('配置已变化')));dispose()
 })
+
+test('history rows show a title and visible timestamp with only an accessible trash icon',async()=>{
+ const h=await assistantPanelHarness();
+ try{
+  await h.click('历史');const row=h.all(h.root).find(n=>n.className==='ln-ai-history-row');
+  assert.ok(!h.all(row).some(n=>['重命名','保存','删除'].includes(n.textContent)));
+  assert.ok(h.all(row).some(n=>n.tagName==='time'&&n.textContent));
+  assert.ok(h.all(row).some(n=>n.className==='ln-ai-history-title'&&n.textContent==='Chat 0'));
+  const remove=h.all(row).find(n=>n.className==='ln-ai-history-delete');assert.equal(remove['aria-label'],'删除会话');
+ }finally{h.cleanup()}
+});
+
+test('a completed chat defers a persisted title, updates an open list and reuses it after reopen',async()=>{
+ const calls=[],records=[];let title='',seq=0,exists=false;
+ const conversations={
+  list:async()=>({items:exists?[{id:'new',title,updatedAt:'2026-11-17T09:00:00Z'}]:[],activeId:'',next:-1}),
+  create:async value=>{exists=true;title=value;return {id:'new',seq:++seq,title}},
+  append:async(id,expected,events)=>{assert.equal(expected,seq);for(const event of events)records.push({...event,seq:++seq});return {id,seq,title}},
+  read:async()=>({id:'new',title,seq,before:0,events:records,checkpoint:records.findLast(event=>event.type==='checkpoint')}),
+  activate:async()=>{},
+  rename:async(id,value)=>{assert.equal(id,'new');title=value;seq++},
+ };
+ const h=await assistantPanelHarness({ctx:{conversations,storage:{get:async()=>({provider:{apiKey:'test-key'}})},ai:{chatCompletion:async request=>{calls.push(request);return {choices:[{message:{role:'assistant',content:request.maxTokens===64?'知识库分类整理':'可以按照项目和主题整理笔记。'}}]}}}}});
+ try{
+  const form=h.find('ln-ai-compose'),input=h.all(h.root).find(n=>n.tagName==='textarea');input.value='帮我整理知识库';await form.listeners.submit({preventDefault(){}});
+  assert.equal(calls.length,1);assert.equal(title,'帮我整理知识库');assert.equal(h.timers.size,1);
+  await h.click('历史');const timer=[...h.timers][0];await timer();
+  assert.equal(calls.length,2);assert.equal(title,'知识库分类整理');assert.equal(h.find('ln-ai-history-title').textContent,title);assert.equal(h.timers.size,0);
+  await h.find('ln-ai-history-open').listeners.click();
+  input.value='继续';await form.listeners.submit({preventDefault(){}});assert.equal(calls.length,3);assert.equal(h.timers.size,0);
+ }finally{h.cleanup()}
+});

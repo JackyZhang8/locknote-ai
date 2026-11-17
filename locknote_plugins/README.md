@@ -1,6 +1,6 @@
 # Locknote AI 官方插件静态目录
 
-将本目录内容原样上传到 `http://cdn.relaycat.cn/locknote_plugins/`，不要额外嵌套一层 `locknote_plugins/`。
+将本目录内容镜像站 `http://cdn.relaycat.cn/locknote_plugins/`。
 
 入口：`http://cdn.relaycat.cn/locknote_plugins/plugins.json`。该文件包含全部插件；当前规模不需要服务端分页，客户端下载目录后进行搜索、兼容版本筛选和分页展示。不使用图片预览，不需要数据库或后端 API。
 
@@ -9,7 +9,7 @@
 | 文件 | 内容 |
 | --- | --- |
 | `plugins.json` | 市场目录及三个插件的版本、兼容要求、大小、SHA-256 和下载地址 |
-| `dev.locknote.ai-assistant-0.4.4.zip` | AI 助手 |
+| `dev.locknote.ai-assistant-0.4.5.zip` | AI 助手 |
 | `dev.locknote.outline-0.1.1.zip` | 笔记大纲 |
 | `dev.locknote.note-checker-0.1.1.zip` | 笔记检查 |
 

@@ -2,6 +2,14 @@
 
 A right-side chat plugin for Locknote AI. Requires the host build that provides `ctx.ai.chatCompletion`; the original v0.1.0 host without this API must be rebuilt/updated first.
 
+## 0.4.5：历史列表与自动命名
+
+- 历史列表显示会话名称和本地时间；删除改为小型垃圾桶图标，保留永久删除确认。移除手动重命名入口。
+- 新会话首次成功回复后，空闲约 3 秒再向当前 Provider 请求名称；继续发送、新建/切换会话、更改 Provider、关闭助手或停用插件会取消待执行/进行中的命名。
+- 只取开头用户消息和助手回复各最多 400 个字符，不附带笔记快照、工具结果和后续聊天。中文要求 6–12 字，英文 3–6 个词；输出本地限制为中文最多 16 字、英文最多 6 个词且 60 字符。命名请求最多 64 输出 token，可能产生少量费用，不计入聊天面板的主对话用量。
+- 名称通过现有 JSONL 重命名记录保存，重启后继续显示；成功后不重复请求。失败保留原名称，下次成功对话可重试。已有会话不批量请求自动改名；未完成命名就重启的会话也保留原名称。
+- 命名写入与聊天写入串行，避免日志序号冲突。安装 0.4.5 ZIP 即可更新插件，无需修改模型配置。
+
 ## 安装与使用
 
 1. 构建当前宿主并重启；本插件新增了宿主 AI 请求接口，旧二进制只导入 ZIP 不够。
@@ -52,7 +60,7 @@ Provider 设置使用带版本的条件保存；配置冲突时保留输入并�
 
 默认 Provider：DeepSeek，Base URL `https://api.deepseek.com`，模型 `deepseek-flash`。模型名可编辑，必须是你的账号/Provider 实际支持的模型；模型不存在时不会擅自切换。自定义服务支持 OpenAI Chat Completions 格式和 function tools，填写 API 根地址（例如 `https://example.com/v1`，不含 `/chat/completions`）。本地模型允许 loopback HTTP，例如 `http://127.0.0.1:11434/v1`。
 
-Enter 发送，Shift+Enter 换行。「停止」取消当前请求或待确认修改；已经确认并保存的修改保留。「新会话」创建独立聊天并保留旧会话。关闭面板会停止运行；应用重启后恢复最近打开的聊天，支持继续对话。右上角「历史」可打开、重命名及确认删除聊天，长聊天可加载更早消息。第一版为逐轮回复，尚非逐 token 流式输出。
+Enter 发送，Shift+Enter 换行。「停止」取消当前请求或待确认修改；已经确认并保存的修改保留。「新会话」创建独立聊天并保留旧会话。关闭面板会停止运行；应用重启后恢复最近打开的聊天，支持继续对话。右上角「历史」可打开、查看自动生成的会话名称及确认删除聊天，长聊天可加载更早消息。第一版为逐轮回复，尚非逐 token 流式输出。
 
 ## 笔记读取和修改
 
@@ -80,4 +88,4 @@ Provider 配置保存在 `~/.locknote-mcp/plugins/_data/dev.locknote.ai-assistan
 
 The SDK forwards OpenAI-compatible non-streaming requests through the desktop-authenticated backend, avoiding WebView CORS restrictions. Only HTTPS or loopback HTTP providers are accepted; redirects are refused. Requests have a 120-second timeout, a 2 MiB input bound and a 4 MiB response bound. A disabled plugin cannot start requests; disabling/closing aborts frontend work. Capability declarations describe trusted plugin behavior and are not a security sandbox.
 
-Tests: `node --test tests/ai-assistant.cjs`; full frontend suite: `cd frontend && npm test`; backend: `go test ./internal/api -run TestPluginAI`. Tests use simulated provider responses and do not use an API key or incur charges. Test your real provider after configuring your own key.
+Tests: `node --test tests/ai-assistant.cjs tests/ai-assistant-titles.cjs`; full frontend suite: `cd frontend && npm test`; backend: `go test ./internal/api -run TestPluginAI`. Tests use simulated provider responses and do not use an API key or incur charges. Test your real provider after configuring your own key.

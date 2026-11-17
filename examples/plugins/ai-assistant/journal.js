@@ -25,7 +25,14 @@ export function createJournal(api) {
   append(event){const operation=queue.then(async()=>{if(blocked)throw new Error('保存失败，请重新打开会话 / reopen conversation');if(!current)throw new Error('No active conversation');try{current={...current,...await api.append(current.id,current.seq,[event])}}catch(error){blocked=true;throw error}});queue=operation.catch(()=>{});return operation},
   async older(){if(!current||!before)return [];const page=await api.read(current.id,before);before=page.before;return messages(page.events)},
   async list(offset=0){return api.list(offset)},
-  async rename(id,title){await queue;await api.rename(id,title);if(current?.id===id){const page=await api.read(id);current={...current,seq:page.seq,title:page.title}}},
+  rename(id,title){const operation=queue.then(async()=>{
+   if(blocked)throw new Error('保存失败，请重新打开会话 / reopen conversation');
+   await api.rename(id,title);
+   if(current?.id===id){
+    try{const page=await api.read(id);current={...current,seq:page.seq,title:page.title}}
+    catch(error){blocked=true;throw error}
+   }
+  });queue=operation.catch(()=>{});return operation},
   async delete(id){await queue;await api.delete(id);if(current?.id===id){current=null;before=0;blocked=false}},
  };
 }
