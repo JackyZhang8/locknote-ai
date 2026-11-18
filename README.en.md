@@ -8,11 +8,11 @@
 
 Locknote AI combines a desktop workspace, browser interface, and MCP server in one application. Edit notes yourself or let AI read, organize, and update documents. Data stays in a local SQLite database; no cloud account is required.
 
-> Notes are stored in plaintext without database encryption. The product is called Locknote AI; existing commands, the Go module, and the default data directory still use locknote-mcp.
+> Notes are stored in plaintext without database encryption. The product and executable are named Locknote AI / locknote-ai. The Go module, default data directory, and LOCKNOTE_MCP_* environment variables retain their existing names.
 
-## What’s New in v0.1.1
+## What’s New in v0.1.2
 
-A desktop plugin system with AI Assistant, Outline, and Note Checker examples. The assistant supports multi-turn chat, session recovery after restart, and reviewable note edits. History now offers side-by-side diffs, synchronized scrolling, and revision-safe restoration. See the [changelog](CHANGELOG.md) for details and upgrade notes.
+This release focuses on Windows installation and startup: a consistent `locknote-ai.exe` name, an MSI setup wizard, and WebView2 prerequisite checks. Normal startup avoids full FTS validation; explicit database maintenance creates a backup before index repair. History comparison and plugin settings load on demand, with startup diagnostics available locally. AI Assistant 0.4.5 adds automatic conversation titles and a simpler history list. See the [changelog](CHANGELOG.md) and [v0.1.2 release notes (Chinese)](docs/releases/v0.1.2.md) for details and upgrade guidance.
 
 ## Origins and the Encrypted Edition
 
@@ -74,10 +74,10 @@ Each release includes `SHA256SUMS`. On macOS, drag the app into Applications. On
 npm --prefix frontend ci          # Install locked frontend dependencies
 npm --prefix frontend run build   # Generate embedded frontend/dist/ assets
 wails build -skipbindings          # Desktop output: build/bin/
-go build -o /tmp/locknote-mcp .     # Build the executable
-/tmp/locknote-mcp serve            # HTTP/MCP server without a window
-/tmp/locknote-mcp stdio            # MCP stdio transport
-/tmp/locknote-mcp token -new default # Rotate the global token
+go build -o /tmp/locknote-ai .     # Build the executable
+/tmp/locknote-ai serve            # HTTP/MCP server without a window
+/tmp/locknote-ai stdio            # MCP stdio transport
+/tmp/locknote-ai token -new default # Rotate the global token
 ~~~
 
 The Wails output name is `locknote-ai`. Use -addr to set the server listening address and -data to select the data directory. The corresponding environment variables are LOCKNOTE_MCP_ADDR and LOCKNOTE_MCP_HOME.
@@ -202,7 +202,7 @@ The server listens on loopback by default. MCP HTTP requires a Bearer token; RES
 
 ## Version Management
 
-Maintain the application version only in the root `VERSION` file. The frontend build synchronizes Wails packaging metadata; the UI, CLI, and MCP share this version. Run `npm --prefix frontend run build` before invoking `wails build` directly. Release tags must match `VERSION` (`v0.1.1` for this release).
+Maintain the application version only in the root `VERSION` file. The frontend build synchronizes Wails packaging metadata; the UI, CLI, and MCP share this version. Run `npm --prefix frontend run build` before invoking `wails build` directly. Release tags must match `VERSION` (`v0.1.2` for this release).
 
 ## License
 

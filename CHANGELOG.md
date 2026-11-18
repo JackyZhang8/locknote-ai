@@ -2,6 +2,34 @@
 
 本文件记录 Locknote AI 各版本的重要变化。应用版本统一维护在根目录 `VERSION`，插件版本独立管理。
 
+## [0.1.2] - 2026-11-18
+
+### 新增
+
+- 启动分阶段诊断：记录数据库、Token 初始化、插件、HTTP、Wails、DOM 和前端工作区就绪耗时，日志位于数据目录的 startup.log，不记录令牌明文或笔记正文。
+- 数据库维护命令：check-db 检查数据库、外键和 FTS；repair-indexes 先创建包含已提交 WAL 数据的一致性备份，再修复索引。
+- Windows 安装、启动、MCP、升级、卸载和性能验收脚本；发布流水线增加安装验证及失败诊断产物保留。
+
+### 改进
+
+- 正常打开数据库不再执行全量 FTS 完整性检查；保留必要迁移、schema/触发器检查和首次建库或缺失 FTS 时的重建逻辑。
+- 历史对比、插件管理界面按需加载，非必要统计延后；首屏等待当前笔记加载后再报告可交互。
+- MSI 增加安装向导、安装目录选择和许可证；EXE/MSI 均检测 WebView2，缺失时明确提示并退出。
+- AI 助手示例更新至 0.4.5：历史列表显示名称与时间、图标删除；首次成功回复后延迟请求简短会话名并写入本地 JSONL，限制发送内容及输出长度。
+
+### 修复
+
+- 修复 NSIS 按旧 Wails 项目名将程序重命名为 locknote-mcp.exe 的问题；构建、两种安装器载荷和快捷方式统一使用 locknote-ai.exe。
+- 索引重建纳入事务，避免失败后留下不完整的触发器状态；修复前的备份包含已提交 WAL 内容。
+- Mermaid 加载失败后允许重试，不阻塞普通 Markdown；启动数据加载失败时不再误报首次可交互。
+
+### 升级与验证说明
+
+- 应用版本为 v0.1.2，插件独立版本不变更；AI 助手 0.4.5 需在插件市场或通过 ZIP 单独升级，不随应用自动更新。
+- 默认数据目录仍为 ~/.locknote-mcp/，无需迁移。升级前退出应用并备份数据库及 plugins/；未应用建议稿仍保存在本机 WebView 存储。
+- Windows 的 EXE 和 MSI 均需预装 WebView2 Evergreen Runtime；离线环境请先安装微软 Evergreen Standalone Installer x64。
+- 本地 Go/前端回归和 Windows x64 GUI 主程序交叉编译已通过；MSI/NSIS 实际安装、升级、卸载及 Windows 11 实机性能仍待验收，不将编译成功视为安装通过。详见 docs/windows-acceptance-report.md。
+
 ## [0.1.1] - 2026-11-16
 
 ### 新增
@@ -48,5 +76,6 @@
 - 支持 Markdown／ZIP 导入导出及分类、标签元数据还原，提供 SVG、Mermaid 和 flowchart 预览。
 - React／TypeScript 桌面与浏览器界面，统一版本来源及跨平台发布流程。
 
+[0.1.2]: https://github.com/JackyZhang8/locknote-ai/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/JackyZhang8/locknote-ai/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/JackyZhang8/locknote-ai/releases/tag/v0.1.0

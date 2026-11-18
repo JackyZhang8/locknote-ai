@@ -8,11 +8,11 @@
 
 Locknote AI 将桌面工作区、浏览器界面和 MCP 服务集成到一个应用。你可以编辑笔记，也可以让 AI 读取、整理和更新文档。数据保存在本机 SQLite 中，无需云端账号。
 
-> 笔记以明文存储，不提供数据库加密。产品名为 Locknote AI；现有命令、Go 模块及默认数据目录仍使用 locknote-mcp。
+> 笔记以明文存储，不提供数据库加密。产品名和主程序名统一为 Locknote AI / locknote-ai；Go 模块、默认数据目录和 LOCKNOTE_MCP_* 环境变量保留原命名。
 
-## v0.1.1 更新亮点
+## v0.1.2 更新亮点
 
-新增桌面插件系统及 AI 助手、大纲、笔记检查三个示例；AI 助手支持多轮对话、重启恢复会话和笔记改动审阅。历史版本支持并排差异、同步滚动和安全恢复。完整变更与升级说明见 [CHANGELOG](CHANGELOG.md)。
+本次重点完善 Windows 安装与启动：统一主程序名为 `locknote-ai.exe`，补齐 MSI 安装向导和 WebView2 检测；正常启动不再全量检查 FTS，增加带备份的数据库维护命令。历史对比和插件管理按需加载，并提供启动诊断日志。AI 助手 0.4.5 新增会话自动命名和更简洁的历史列表。完整变更与升级说明见 [CHANGELOG](CHANGELOG.md) 和 [v0.1.2 发布说明](docs/releases/v0.1.2.md)。
 
 ## 项目来源与加密版本
 
@@ -74,10 +74,10 @@ GitHub Release 文件统一以 `locknote-ai-<版本号>-<平台>` 命名：
 npm --prefix frontend ci          # 安装锁定的前端依赖
 npm --prefix frontend run build   # 生成 Go 嵌入的 frontend/dist/
 wails build -skipbindings          # 桌面产物位于 build/bin/
-go build -o /tmp/locknote-mcp .     # 构建可执行文件
-/tmp/locknote-mcp serve            # HTTP／MCP 服务，不打开窗口
-/tmp/locknote-mcp stdio            # MCP stdio 模式
-/tmp/locknote-mcp token -new 默认  # 更换全局令牌
+go build -o /tmp/locknote-ai .     # 构建可执行文件
+/tmp/locknote-ai serve            # HTTP／MCP 服务，不打开窗口
+/tmp/locknote-ai stdio            # MCP stdio 模式
+/tmp/locknote-ai token -new 默认  # 更换全局令牌
 ~~~
 
 Wails 输出名称为 `locknote-ai`。服务用 -addr 指定监听地址，各模式用 -data 指定数据目录。环境变量为 LOCKNOTE_MCP_ADDR 和 LOCKNOTE_MCP_HOME。
@@ -202,7 +202,7 @@ wails build -skipbindings
 
 ## 版本维护
 
-版本号统一在根目录 `VERSION` 中维护。只修改该文件；前端构建会自动同步 `wails.json` 中的打包版本，界面、CLI 和 MCP 使用同一版本。手动运行 `wails build` 前先执行 `npm --prefix frontend run build`，发布标签必须与 `VERSION` 一致（本版本为 `v0.1.1`）。
+版本号统一在根目录 `VERSION` 中维护。只修改该文件；前端构建会自动同步 `wails.json` 中的打包版本，界面、CLI 和 MCP 使用同一版本。手动运行 `wails build` 前先执行 `npm --prefix frontend run build`，发布标签必须与 `VERSION` 一致（本版本为 `v0.1.2`）。
 
 ## 许可证
 

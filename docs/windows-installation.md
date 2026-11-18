@@ -11,8 +11,8 @@ Windows 10/11 x64，管理员权限，已安装 Microsoft Edge WebView2 Evergree
 在管理员 PowerShell 中执行（按实际路径替换）：
 
 ~~~powershell
-msiexec.exe /i C:/Temp/locknote-ai-0.1.1-windows-x64.msi /qb! /L*V C:/Temp/locknote-msi.log
-msiexec.exe /i C:/Temp/locknote-ai-0.1.1-windows-x64.msi /qn /norestart /L*V C:/Temp/locknote-msi-quiet.log
+msiexec.exe /i C:/Temp/locknote-ai-0.1.2-windows-x64.msi /qb! /L*V C:/Temp/locknote-msi.log
+msiexec.exe /i C:/Temp/locknote-ai-0.1.2-windows-x64.msi /qn /norestart /L*V C:/Temp/locknote-msi-quiet.log
 ~~~
 
 区分安装器未显示、安装失败回滚和安装完成但没有自动启动。检查进程退出码、LaunchCondition、权限、文件缺失及日志 Return value 3。当前缺少原 Windows 11 verbose log，不能认定原 MSI 无响应的唯一根因；已补上 WixUI_InstallDir、真实许可证与 WixUIExtension 链接。
