@@ -5,8 +5,9 @@ const ts = require('typescript');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 
-// Load the actual TSX components without introducing another test framework.
-require.extensions['.tsx'] = function (module, filename) {
+// Explicitly transpile components and their TypeScript dependencies on Node 20.
+// Do not rely on newer Node versions stripping TypeScript types implicitly.
+for (const extension of ['.ts', '.tsx']) require.extensions[extension] = function (module, filename) {
   const { outputText } = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
