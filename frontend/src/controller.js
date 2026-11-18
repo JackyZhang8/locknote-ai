@@ -2492,8 +2492,8 @@ export function startWorkspace() {
   /* ----------------------------------------------------------------- init */
 
   function init() {
-    // 桌面窗口里才显示顶部的交通灯留白（浏览器里这条带子高度为 0）。
-    if (window.runtime) document.documentElement.classList.add('desktop');
+    // 仅 macOS 桌面为交通灯预留顶部空间；Windows/Linux 和浏览器不占位。
+    window.LNWindowControls.syncDesktopLayout();
     // Read persisted preferences before anything renders, so the first paint
     // already uses the saved theme / language / font size.
     bootStep(8, tr('正在读取偏好设置…'));

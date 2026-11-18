@@ -4,6 +4,13 @@
   // ResizeObserver runs before paint. Running here avoids adding a second
   // requestAnimationFrame delay after the new viewport has already appeared.
   window.LNWindowControls = {
+    syncDesktopLayout: function () {
+      var desktop = !!window.runtime;
+      var navigator = window.navigator || {};
+      var platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+      document.documentElement.classList.toggle('desktop', desktop);
+      document.documentElement.classList.toggle('desktop-macos', desktop && /^Mac/i.test(platform));
+    },
     observeViewport: function (element, sync) {
       window.addEventListener('resize', sync);
       if (window.ResizeObserver) {

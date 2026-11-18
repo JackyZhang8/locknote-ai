@@ -96,7 +96,8 @@ select option { color: var(--ink); background: #fff; }
   grid-template-rows: auto 44px minmax(0, 1fr) 31px;
 }
 
-/* macOS 交通灯带：默认 0 高（浏览器里不占位），桌面窗口里展开成一条可拖拽的空白带，
+/* macOS 交通灯带：默认 0 高，仅 macOS 桌面展开成可拖拽的空白带，
+   Windows/Linux 使用原生标题栏，浏览器同样不预留此空间。
    这样关闭／最小化／最大化按钮就和下面的 logo 行彻底分开了。
    注意别叫 .titlebar —— 笔记列表头那一行已经用了这个类名。 */
 .titlebar-strip {
@@ -104,7 +105,7 @@ select option { color: var(--ink); background: #fff; }
   overflow: hidden;
   background: hsl(var(--palette-hue), 28.6%, 97.3%);
 }
-html.desktop .titlebar-strip {
+html.desktop.desktop-macos .titlebar-strip {
   height: 36px;
   border-bottom: 1px solid var(--line-soft);
   --wails-draggable: drag;

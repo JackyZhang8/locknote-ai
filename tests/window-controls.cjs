@@ -2,6 +2,22 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const fs=require('node:fs');
+test('only the macOS desktop reserves space above the logo',()=>{
+ for (const [platform,desktop,mac] of [['MacIntel',true,true],['Win32',true,false],['Linux x86_64',true,false],['MacIntel',false,false]]) {
+  const classes=new Set();
+  const window={navigator:{platform},runtime:desktop?{}:undefined};
+  const document={documentElement:{classList:{toggle(name,on){if(on)classes.add(name);else classes.delete(name)}}},addEventListener(){}};
+  vm.runInNewContext(fs.readFileSync('frontend/src/runtime/window-controls.js','utf8'),{window,document});
+  window.LNWindowControls.syncDesktopLayout();
+  assert.equal(classes.has('desktop'),desktop,platform);
+  assert.equal(classes.has('desktop-macos'),mac,platform);
+ }
+ const css=fs.readFileSync('frontend/src/styles.css','utf8');
+ assert.ok(css.includes('html.desktop.desktop-macos .titlebar-strip'));
+ assert.ok(!css.includes('html.desktop .titlebar-strip'));
+ const controller=fs.readFileSync('frontend/src/controller.js','utf8');
+ assert.ok(controller.includes('window.LNWindowControls.syncDesktopLayout()'));
+});
 test('double-click titlebar toggles native maximize only on blank titlebar',()=>{
  let listener, calls=0;
  const window={runtime:{WindowToggleMaximise(){calls++}}};
