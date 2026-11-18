@@ -8,7 +8,7 @@
     if (!library) library = import(/* @vite-ignore */ mermaidURL).then(function (module) {
       module.default.initialize({ startOnLoad: false, securityLevel: 'strict', suppressErrorRendering: true, theme: 'neutral', fontFamily: 'system-ui, sans-serif', flowchart: { htmlLabels: false, useMaxWidth: false } });
       return module.default;
-    });
+    }).catch(function (err) { library = null; throw err; });
     return library;
   }
   function display(output, svg) {
@@ -43,6 +43,7 @@
         if (block.isConnected) display(output, result.svg);
       }).finally(function () { container.remove(); });
     }).catch(function () {
+      delete block.dataset.rendering;
       if (block.isConnected) output.textContent = en() ? 'Unable to render. Check the diagram source.' : '绘制失败，请切换到源码检查流程图语法。';
     });
   }
@@ -52,6 +53,7 @@
     var block = button.closest('[data-diagram]');
     if (!block) return;
     var source = button.dataset.diagramMode === 'source';
+    if (!source) render(block);
     block.querySelector('.diagram-output').classList.toggle('hidden', source);
     block.querySelector('.diagram-source').classList.toggle('hidden', !source);
     Array.prototype.forEach.call(block.querySelectorAll('[data-diagram-mode]'), function (tab) { tab.setAttribute('aria-pressed', String(tab === button)); });

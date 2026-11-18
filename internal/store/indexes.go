@@ -3,6 +3,7 @@ package store
 import (
 	_ "embed"
 	"fmt"
+	"locknote-mcp/internal/startup"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -73,10 +74,18 @@ DROP TRIGGER IF EXISTS trg_notes_fts_update;
 // installIndexes creates all v3 structures. It is called from migrate and is
 // safe to call repeatedly. needRebuild is true when the library predates v3.
 func (s *Store) installIndexes(needRebuild bool) error {
+	indexDone := startup.Stage("startup.database.indexes")
+	defer indexDone()
+	var ftsExists int
+	if err := s.db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='notes_fts'").Scan(&ftsExists); err != nil {
+		return err
+	}
 	if _, err := s.db.Exec(indexSQL); err != nil {
 		return fmt.Errorf("store: create indexes: %w", err)
 	}
 
+	ftsDone := startup.Stage("startup.database.fts")
+	defer ftsDone()
 	if _, err := s.db.Exec(ftsSchemaSQL); err != nil {
 		// FTS5 is optional: search falls back to LIKE if the driver lacks it.
 		s.ftsEnabled = false
@@ -87,33 +96,14 @@ func (s *Store) installIndexes(needRebuild bool) error {
 	// SQLite's ordinary integrity_check does not compare external-content FTS
 	// postings with notes. A stale posting list can make subsequent writes fail
 	// with SQLITE_CORRUPT_VTAB (267), even when every source row is intact.
-	if s.ftsEnabled && !needRebuild {
-		tx, err := s.db.Begin()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-		if _, err = tx.Exec(`INSERT INTO notes_fts(notes_fts,rank) VALUES('integrity-check',1)`); err != nil {
-			if _, err = tx.Exec(`INSERT INTO notes_fts(notes_fts) VALUES('rebuild')`); err != nil {
-				return fmt.Errorf("store: repair full-text index: %w", err)
-			}
-			if _, err = tx.Exec(`INSERT INTO notes_fts(notes_fts,rank) VALUES('integrity-check',1)`); err != nil {
-				return fmt.Errorf("store: verify repaired full-text index: %w", err)
-			}
-		}
-		if err = tx.Commit(); err != nil {
-			return err
-		}
+	if s.ftsEnabled && ftsExists == 0 {
+		needRebuild = true
 	}
+	// Posting validation belongs to explicit maintenance, not every startup.
 
 	if needRebuild {
-		if err := s.rebuildMaterialised(); err != nil {
+		if err := s.RebuildIndexes(); err != nil {
 			return err
-		}
-		if s.ftsEnabled {
-			if _, err := s.db.Exec(`INSERT INTO notes_fts(notes_fts) VALUES('rebuild')`); err != nil {
-				return fmt.Errorf("store: rebuild fts: %w", err)
-			}
 		}
 	}
 
@@ -145,23 +135,25 @@ func (s *Store) rebuildMaterialised() error {
 // reinstalls the triggers. Use it after bulk writes that bypassed the triggers,
 // or to repair a library whose denormalised data drifted.
 func (s *Store) RebuildIndexes() error {
-	if err := s.rebuildMaterialised(); err != nil {
+	tx, err := s.db.Begin()
+	if err != nil {
 		return err
 	}
-	if s.ftsEnabled {
-		if _, err := s.db.Exec(`INSERT INTO notes_fts(notes_fts) VALUES('rebuild')`); err != nil {
-			return fmt.Errorf("store: rebuild fts: %w", err)
+	defer tx.Rollback()
+	for _, statement := range []string{dropTriggersSQL, rebuildStatementsSQL, materialisedTriggersSQL} {
+		if _, err = tx.Exec(statement); err != nil {
+			return fmt.Errorf("store: rebuild materialised indexes: %w", err)
 		}
 	}
-	if _, err := s.db.Exec(materialisedTriggersSQL); err != nil {
-		return fmt.Errorf("store: reinstall triggers: %w", err)
-	}
 	if s.ftsEnabled {
-		if _, err := s.db.Exec(ftsTriggersSQL); err != nil {
+		if _, err = tx.Exec("INSERT INTO notes_fts(notes_fts) VALUES('rebuild')"); err != nil {
+			return fmt.Errorf("store: rebuild fts: %w", err)
+		}
+		if _, err = tx.Exec(ftsTriggersSQL); err != nil {
 			return fmt.Errorf("store: reinstall fts triggers: %w", err)
 		}
 	}
-	return nil
+	return tx.Commit()
 }
 
 // FTSReady reports whether the trigram keyword index is available.

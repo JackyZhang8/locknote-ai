@@ -2,6 +2,17 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
+test('failed diagram loading can be retried without blocking ordinary preview',async()=>{
+ const listeners={};const window={};
+ const document={addEventListener:(name,handler)=>{listeners[name]=handler}};
+ vm.runInNewContext(fs.readFileSync('frontend/src/runtime/diagrams.js','utf8'),{window,document});
+ const output={textContent:''};
+ const block={dataset:{diagram:'mermaid'},isConnected:true,querySelector:selector=>selector.includes('code')?{textContent:'graph TD; A-->B'}:output};
+ window.LNDiagrams.render({querySelectorAll:()=>[block]});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.match(output.textContent,/绘制失败/);
+ assert.equal(block.dataset.rendering,undefined);
+});
 const window={LNSVG:{sanitize:source=>source}};
 vm.runInNewContext(fs.readFileSync('frontend/src/runtime/markdown.js','utf8'),{window});
 test('SVG blocks get a safe image preview and source disclosure',()=>{

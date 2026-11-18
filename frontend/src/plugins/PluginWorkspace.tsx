@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { pluginRuntime } from './runtime'
-import { PluginDialog } from './PluginSettings'
+import { PluginDialog } from './PluginDialog'
 import type { RegisteredView, ViewLocation } from './types'
 import { t, errorMessage } from './ui-text'
 import './plugins.css'

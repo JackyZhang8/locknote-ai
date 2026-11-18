@@ -5,13 +5,23 @@
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Platform="x64" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of Locknote AI is already installed." />
     <MediaTemplate EmbedCab="yes" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UIRef Id="WixUI_InstallDir" />
+    <WixVariable Id="WixUILicenseRtf" Value="build/packaging/license.rtf" />
+    <Property Id="WEBVIEW2_MACHINE32"><RegistrySearch Id="WebViewMachine32" Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="pv" Type="raw" Win64="no" /></Property>
+    <Property Id="WEBVIEW2_MACHINE64"><RegistrySearch Id="WebViewMachine64" Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="pv" Type="raw" Win64="yes" /></Property>
+    <Property Id="WEBVIEW2_USER32"><RegistrySearch Id="WebViewUser32" Root="HKCU" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="pv" Type="raw" Win64="no" /></Property>
+    <Property Id="WEBVIEW2_USER64"><RegistrySearch Id="WebViewUser64" Root="HKCU" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="pv" Type="raw" Win64="yes" /></Property>
+    <Condition Message="Microsoft Edge WebView2 Runtime is required. Install the Evergreen Standalone Installer (x64) from https://developer.microsoft.com/microsoft-edge/webview2/ and retry.">Installed OR (WEBVIEW2_MACHINE32 AND WEBVIEW2_MACHINE32 &lt;&gt; "0.0.0.0") OR (WEBVIEW2_MACHINE64 AND WEBVIEW2_MACHINE64 &lt;&gt; "0.0.0.0") OR (WEBVIEW2_USER32 AND WEBVIEW2_USER32 &lt;&gt; "0.0.0.0") OR (WEBVIEW2_USER64 AND WEBVIEW2_USER64 &lt;&gt; "0.0.0.0")</Condition>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="Locknote AI">
           <Component Id="Application" Guid="9EC1933A-1D2D-49E1-8090-CDA50CCCD9FD" Win64="yes">
-            <File Id="ApplicationExe" Source="$(var.Binary)" Name="locknote-ai.exe" KeyPath="yes">
-              <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Locknote AI" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
-            </File>
+            <File Id="ApplicationExe" Source="$(var.Binary)" Name="$(var.AppExe)" KeyPath="yes" />
+          </Component>
+          <Component Id="StartMenuEntry" Guid="3477506E-1E80-4C49-8826-C7F2E30216F0" Win64="yes">
+            <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Locknote AI" Target="[INSTALLFOLDER]$(var.AppExe)" WorkingDirectory="INSTALLFOLDER" Advertise="no" />
+            <RegistryValue Root="HKMU" Key="Software\Locknote AI\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
           </Component>
           <Component Id="License" Guid="58E02BF9-E410-4615-9C48-800394130DEA" Win64="yes">
             <File Source="LICENSE" KeyPath="yes" />
@@ -22,6 +32,7 @@
     </Directory>
     <Feature Id="MainFeature" Title="Locknote AI" Level="1">
       <ComponentRef Id="Application" />
+      <ComponentRef Id="StartMenuEntry" />
       <ComponentRef Id="License" />
     </Feature>
     <Property Id="ARPCOMMENTS" Value="Local-first Markdown notes with AI integration. Requires Microsoft Edge WebView2 Runtime." />

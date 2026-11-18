@@ -1,6 +1,6 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "locknote-mcp",
+  "name": "locknote-ai",
   "outputfilename": "locknote-ai",
   "frontend:dir": "frontend",
   "frontend:install": "npm install",

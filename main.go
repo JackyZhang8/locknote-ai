@@ -24,6 +24,7 @@ import (
 
 	"locknote-mcp/internal/api"
 	"locknote-mcp/internal/mcp"
+	"locknote-mcp/internal/startup"
 	"locknote-mcp/internal/store"
 )
 
@@ -47,6 +48,8 @@ func main() {
 	}
 
 	switch cmd {
+	case "check-db", "repair-indexes":
+		runMaintenance(cmd, args)
 	case "serve", "web", "run":
 		runServe(args)
 	case "stdio", "mcp":
@@ -54,7 +57,7 @@ func main() {
 	case "token":
 		runToken(args)
 	case "version", "-v", "--version":
-		fmt.Println("locknote-mcp " + version)
+		fmt.Println("locknote-ai " + version)
 	case "help", "-h", "--help":
 		usage()
 	case "":
@@ -68,14 +71,16 @@ func main() {
 }
 
 func usage() {
-	fmt.Print(`locknote-mcp —— 天然适配 AI 的 Markdown 笔记库（内置 MCP 服务）
+	fmt.Print(`locknote-ai —— 天然适配 AI 的 Markdown 笔记库（内置 MCP 服务）
 
 用法：
-  locknote-mcp [选项]             打开桌面应用（同时在本机起 HTTP + MCP 服务）
-  locknote-mcp serve [选项]       只起 HTTP 服务，不开窗口
-  locknote-mcp stdio [选项]       以 stdio 方式运行 MCP（供 Claude Desktop 等本地客户端调用）
-  locknote-mcp token [选项]       查看或更换全局 MCP 访问令牌
-  locknote-mcp version            显示版本
+  locknote-ai [选项]             打开桌面应用（同时在本机起 HTTP + MCP 服务）
+  locknote-ai serve [选项]       只起 HTTP 服务，不开窗口
+  locknote-ai stdio [选项]       以 stdio 方式运行 MCP（供 Claude Desktop 等本地客户端调用）
+  locknote-ai token [选项]       查看或更换全局 MCP 访问令牌
+  locknote-ai version            显示版本
+  locknote-ai check-db -data DIR  检查数据库与 FTS（先关闭应用）
+  locknote-ai repair-indexes -data DIR  一致性备份后修复索引
 
 通用选项：
   -addr 127.0.0.1:7420   监听地址（默认只监听本机）
@@ -91,8 +96,8 @@ token 选项：
   -new NAME              更换全局令牌，旧令牌立即失效
 
 示例：
-  locknote-mcp
-  locknote-mcp serve -open
+  locknote-ai
+  locknote-ai serve -open
   claude mcp add --transport http locknote http://127.0.0.1:7420/mcp --header "Authorization: Bearer <token>"
 `)
 }
@@ -112,6 +117,11 @@ func runServe(args []string) {
 	if err != nil {
 		fatal("创建数据目录失败: %v", err)
 	}
+	if err := startup.Init(dir); err != nil {
+		log.Printf("Startup log unavailable: %v", err)
+	}
+	defer startup.Close()
+	startup.Mark("startup.data_dir")
 	st, err := store.Open(filepath.Join(dir, "locknote.db"))
 	if err != nil {
 		fatal("打开数据库失败: %v", err)
@@ -151,7 +161,7 @@ func runServe(args []string) {
 			}
 			fmt.Fprintf(os.Stderr, "\n  端口 %s 已被占用，可能已经有一个 locknote-mcp 在运行。\n\n", port)
 			fmt.Fprintf(os.Stderr, "  换个端口：  ./dev.sh 前设置 LOCKNOTE_MCP_ADDR=127.0.0.1:7421\n")
-			fmt.Fprintf(os.Stderr, "              locknote-mcp -addr 127.0.0.1:7421\n")
+			fmt.Fprintf(os.Stderr, "              locknote-ai -addr 127.0.0.1:7421\n")
 			fmt.Fprintf(os.Stderr, "  或看看是谁：lsof -nP -iTCP:%s -sTCP:LISTEN\n\n", port)
 			os.Exit(1)
 		}
@@ -366,4 +376,18 @@ func isAddrInUse(err error) bool {
 func fatal(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, "错误: "+format+"\n", args...)
 	os.Exit(1)
+}
+
+func runMaintenance(command string, args []string) {
+	flags := flag.NewFlagSet(command, flag.ExitOnError)
+	dir := flags.String("data", defaultDataDir(), "data directory; close all app processes first")
+	_ = flags.Parse(args)
+	backup, err := store.MaintainDatabase(filepath.Join(*dir, "locknote.db"), command == "repair-indexes")
+	if backup != "" {
+		fmt.Println("Backup:", backup)
+	}
+	if err != nil {
+		fatal("Database maintenance failed: %v", err)
+	}
+	fmt.Println("Database and FTS integrity: OK")
 }

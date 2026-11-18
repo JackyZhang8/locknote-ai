@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"locknote-mcp/internal/startup"
 	_ "modernc.org/sqlite"
 )
 
@@ -42,6 +43,8 @@ type Store struct {
 
 // Open opens (and creates if needed) the database at path.
 func Open(path string) (*Store, error) {
+	openDone := startup.Stage("startup.database.open")
+	defer openDone()
 	if strings.TrimSpace(path) == "" {
 		return nil, errors.New("store: empty database path")
 	}
@@ -73,10 +76,15 @@ func Open(path string) (*Store, error) {
 	}
 
 	s := &Store{db: db, path: path}
+	migrateDone := startup.Stage("startup.database.migrate")
 	if err := s.migrate(); err != nil {
+		migrateDone()
 		_ = db.Close()
 		return nil, err
 	}
+	migrateDone()
+	seedDone := startup.Stage("startup.database.seed")
+	defer seedDone()
 	if err := s.ensureSeed(); err != nil {
 		_ = db.Close()
 		return nil, err

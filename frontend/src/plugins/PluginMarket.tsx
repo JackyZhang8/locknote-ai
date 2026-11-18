@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { pluginRuntime } from './runtime'
-import { PluginDialog } from './PluginSettings'
+import { PluginDialog } from './PluginDialog'
 import { currentLocale } from './i18n'
 import { t, errorMessage } from './ui-text'
 import { loadMarketCatalog, marketPage, marketText, marketStatus, selectMarketRelease, type MarketPlugin, type MarketRelease, type MarketSnapshot } from './market'

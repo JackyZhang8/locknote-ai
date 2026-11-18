@@ -51,7 +51,7 @@ jobs:
           - os: windows-2022
             platform: windows
             arch: x86_64
-            suffix: windows
+            suffix: windows-x64
           - os: ubuntu-22.04
             platform: linux
             arch: x86_64
@@ -145,7 +145,8 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            wails build -clean -skipbindings -o locknote-ai.exe -platform windows/amd64 -nsis
+            APP_EXE="$(node -p 'require("./wails.json").outputfilename + ".exe"')"
+            wails build -clean -skipbindings -o "$APP_EXE" -platform windows/amd64 -nsis
           else
             wails build -clean -skipbindings -o locknote-ai
           fi
@@ -228,18 +229,24 @@ jobs:
         shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.version.outputs.version }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Force dist | Out-Null
-          $name = "locknote-ai-$env:RELEASE_VERSION-windows"
-          $installers = @(Get-ChildItem build/bin -Filter '*installer.exe')
-          if ($installers.Count -ne 1) { throw "Expected one NSIS installer" }
-          Copy-Item $installers[0].FullName "dist/$name.exe"
-          $binary = (Resolve-Path build/bin/locknote-ai.exe).Path
-          candle.exe -nologo -arch x64 "-dVersion=$env:RELEASE_VERSION" "-dBinary=$binary" -out build/packaging/windows.wixobj build/packaging/windows.wxs
-          if ($LASTEXITCODE -ne 0) { throw "WiX compilation failed" }
-          light.exe -nologo -spdb -out "dist/$name.msi" build/packaging/windows.wixobj
-          if ($LASTEXITCODE -ne 0) { throw "MSI linking failed" }
+        run: ./scripts/package-windows.ps1 # candle/light link WixUIExtension
+
+      - name: Validate Windows installation and startup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/windows/acceptance.ps1
+
+      - name: Preserve Windows installation evidence
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-diagnostics
+          path: |
+            windows-evidence/
+            build/packaging/*.wixobj
+            dist/*.msi
+            dist/*.exe
+          if-no-files-found: warn
 
       - name: Package (macOS)
         if: runner.os == 'macOS'

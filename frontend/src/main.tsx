@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { installReactRendering } from './rendering'
+import './runtime/startup.js'
 import './styles.css'
 import './runtime/svg.js'
 import './runtime/markdown.js'
@@ -19,8 +20,10 @@ installPluginIntegration()
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing application root')
 
+window.LNStartup?.mark('frontend.react.mount')
 createRoot(root).render(
   <App onReady={() => {
+    window.LNStartup?.mark('frontend.app.ready')
     startWorkspaceControls()
     startWorkspace()
   }} />,

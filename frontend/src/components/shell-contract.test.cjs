@@ -26,7 +26,8 @@ const Module = require('node:module');
 const originalLoad = Module._load;
 Module._load = function(request, parent, isMain) {
   if (request.endsWith('/history/HistoryWindow')) return { HistoryWindow: () => null };
-  if (request.endsWith('/plugins/PluginSettings')) return { PluginSettings: () => null };
+  if (request === './history/bridge') return originalLoad.call(this, './history/bridge.ts', parent, isMain);
+  if (request.endsWith('/plugins/DeferredPluginSettings')) return { DeferredPluginSettings: () => null };
   if (request.endsWith('/plugins/PluginWorkspace')) return { PluginWorkspace: () => null };
   return originalLoad.call(this, request, parent, isMain);
 };

@@ -27,6 +27,7 @@ import (
 	"locknote-mcp/internal/api"
 	"locknote-mcp/internal/mcp"
 	"locknote-mcp/internal/plugins"
+	"locknote-mcp/internal/startup"
 	"locknote-mcp/internal/store"
 )
 
@@ -88,6 +89,11 @@ func runGUI(args []string) {
 	if err != nil {
 		fatal("创建数据目录失败: %v", err)
 	}
+	if err := startup.Init(dir); err != nil {
+		log.Printf("Startup log unavailable: %v", err)
+	}
+	defer startup.Close()
+	startup.Mark("startup.data_dir")
 	st, err := store.Open(filepath.Join(dir, "locknote.db"))
 	if err != nil {
 		fatal("打开数据库失败: %v", err)
@@ -95,7 +101,9 @@ func runGUI(args []string) {
 	defer func() { _ = st.Close() }()
 
 	tokenFile := filepath.Join(dir, "token")
+	tokenDone := startup.Stage("startup.token")
 	defaultToken := ensureToken(st, tokenFile)
+	tokenDone()
 
 	baseURL := publicURL(*addr)
 	mcpServer := mcp.NewServer(st, version, baseURL)
@@ -105,10 +113,12 @@ func runGUI(args []string) {
 		fatal("加载界面资源失败: %v", err)
 	}
 
+	pluginsDone := startup.Stage("startup.plugins")
 	pluginManager, err := plugins.New(filepath.Join(dir, "plugins"), version)
 	if err != nil {
 		log.Printf("插件管理不可用，主工作区继续启动: %v", err)
 	}
+	pluginsDone()
 	if *safePlugins && pluginManager != nil {
 		if err := pluginManager.DisableAll(); err != nil {
 			log.Printf("禁用插件失败，跳过插件加载: %v", err)
@@ -143,6 +153,7 @@ func runGUI(args []string) {
 
 	// 桌面窗口自己走 Wails 的资源服务 + 进程内 handler；
 	// 这个 HTTP 端口是留给浏览器和 MCP 客户端的。
+	httpDone := startup.Stage("startup.http")
 	if ln, err := net.Listen("tcp", *addr); err == nil {
 		srv := &http.Server{Handler: handler, ReadHeaderTimeout: 10 * time.Second}
 		go func() { _ = srv.Serve(ln) }()
@@ -151,6 +162,7 @@ func runGUI(args []string) {
 		fmt.Fprintf(os.Stderr, "\n  MCP 端点没有启动：%v\n  桌面窗口照常可用，但 AI 客户端暂时连不上。\n\n", err)
 	}
 
+	httpDone()
 	type bounds struct {
 		Width     int
 		Height    int
@@ -166,6 +178,7 @@ func runGUI(args []string) {
 	if savedBounds.Height < 560 || savedBounds.Height > 4320 {
 		savedBounds.Height = 860
 	}
+	startup.Mark("startup.wails")
 	err = wails.Run(&options.App{
 		Title:            "Locknote",
 		Bind:             []interface{}{app},
@@ -176,6 +189,7 @@ func runGUI(args []string) {
 		AssetServer:      &assetserver.Options{Assets: webFS, Handler: handler},
 		BackgroundColour: &options.RGBA{R: 249, G: 248, B: 242, A: 1},
 		OnDomReady: func(ctx context.Context) {
+			startup.Mark("startup.dom_ready")
 			app.set(ctx)
 			if savedBounds.X >= 0 && savedBounds.Y >= 0 && savedBounds.X < 7680 && savedBounds.Y < 4320 {
 				wruntime.WindowSetPosition(ctx, savedBounds.X, savedBounds.Y)
@@ -218,4 +232,9 @@ func runGUI(args []string) {
 	if err != nil {
 		fatal("桌面窗口启动失败: %v", err)
 	}
+}
+
+// StartupMark accepts only allowlisted phase identifiers, never note text.
+func (d *desktop) StartupMark(name string, milliseconds float64) {
+	startup.Frontend(name, milliseconds)
 }

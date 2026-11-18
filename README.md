@@ -63,10 +63,10 @@ GitHub Release 文件统一以 `locknote-ai-<版本号>-<平台>` 命名：
 | --- | --- |
 | macOS Apple Silicon | `macos-arm64.dmg`、`macos-arm64.app.tar.gz` |
 | macOS Intel | `macos-x86_64.dmg`、`macos-x86_64.app.tar.gz` |
-| Windows x64 | `windows.exe`（安装程序）、`windows.msi` |
+| Windows x64 | `windows-x64.exe`（安装程序）、`windows-x64.msi` |
 | Linux x64 | `linux.deb`、`linux.AppImage` |
 
-发布页同时提供 `SHA256SUMS` 校验文件。macOS 将应用拖入 Applications 即可安装。Windows 推荐使用 `.exe`，会按需安装 WebView2；使用 `.msi` 前需安装 Microsoft Edge WebView2 Runtime。Linux 面向 Ubuntu 22.04，AppImage 也需要系统提供 GTK 3 和 WebKitGTK 4.0（`libgtk-3-0`、`libwebkit2gtk-4.0-37`），不是完全独立的运行环境；必要时可通过 `--appimage-extract-and-run` 绕过 FUSE。
+发布页同时提供 `SHA256SUMS` 校验文件。macOS 将应用拖入 Applications 即可安装。Windows 的 `.exe` 和 `.msi` 均需要预先安装 Microsoft Edge WebView2 Evergreen Runtime；缺失时安装器会提示并退出，离线环境请先安装微软提供的 Evergreen Standalone Installer x64。安装后主程序统一为 `locknote-ai.exe`。Linux 面向 Ubuntu 22.04，AppImage 也需要系统提供 GTK 3 和 WebKitGTK 4.0（`libgtk-3-0`、`libwebkit2gtk-4.0-37`），不是完全独立的运行环境；必要时可通过 `--appimage-extract-and-run` 绕过 FUSE。
 
 ### 构建与命令行
 

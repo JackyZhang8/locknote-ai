@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { PluginSettings } from '../plugins/PluginSettings'
+import { DeferredPluginSettings } from '../plugins/DeferredPluginSettings'
 
 // Keep DOM identifiers and markup stable for the workspace controllers.
 export function WorkspaceShell() {
@@ -967,7 +967,7 @@ export function WorkspaceShell() {
                   {"\n\n        "}
                   {"\n        "}
                   <div className="settings-panel hidden" data-panel="plugins" data-plugin-shell="settings-panel">
-                    <PluginSettings />
+                    <DeferredPluginSettings />
                   </div>
                   <div className={"settings-panel hidden"} data-panel={"about"}>
                     {"\n          "}

@@ -22,7 +22,7 @@ jobs:
           node-version: 20
 
       - name: Linux packaging regression test
-        run: node --test tests/package-linux.cjs
+        run: node --test tests/package-linux.cjs tests/package-windows.cjs tests/startup-frontend.cjs
 
       - name: Install frontend dependencies
         working-directory: frontend

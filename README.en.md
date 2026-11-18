@@ -63,10 +63,10 @@ Release assets use the name `locknote-ai-<version>-<platform>`:
 | --- | --- |
 | macOS Apple Silicon | `macos-arm64.dmg`, `macos-arm64.app.tar.gz` |
 | macOS Intel | `macos-x86_64.dmg`, `macos-x86_64.app.tar.gz` |
-| Windows x64 | `windows.exe` (installer), `windows.msi` |
+| Windows x64 | `windows-x64.exe` (installer), `windows-x64.msi` |
 | Linux x64 | `linux.deb`, `linux.AppImage` |
 
-Each release includes `SHA256SUMS`. On macOS, drag the app into Applications. On Windows, the recommended `.exe` installer installs WebView2 when needed; install Microsoft Edge WebView2 Runtime before using the `.msi`. Linux packages target Ubuntu 22.04. The AppImage also requires system GTK 3 and WebKitGTK 4.0 (`libgtk-3-0`, `libwebkit2gtk-4.0-37`); it is not a fully self-contained runtime. Use `--appimage-extract-and-run` to bypass FUSE if needed.
+Each release includes `SHA256SUMS`. On macOS, drag the app into Applications. On Windows, both `.exe` and `.msi` require Microsoft Edge WebView2 Evergreen Runtime in advance. Missing Runtime causes a clear installer failure; offline systems should first install the Microsoft Evergreen Standalone Installer x64. The installed application is named `locknote-ai.exe`. Linux packages target Ubuntu 22.04. The AppImage also requires system GTK 3 and WebKitGTK 4.0 (`libgtk-3-0`, `libwebkit2gtk-4.0-37`); it is not a fully self-contained runtime. Use `--appimage-extract-and-run` to bypass FUSE if needed.
 
 ### Build and CLI
 

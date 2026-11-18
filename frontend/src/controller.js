@@ -1,5 +1,6 @@
 /* Locknote MCP — workspace app */
 export function startWorkspace() {
+  window.LNStartup && window.LNStartup.mark('frontend.workspace.start');
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
@@ -584,7 +585,7 @@ export function startWorkspace() {
       if (!opts.keepSelection) {
         var stillThere = state.notes.some(function (n) { return n.id === state.selectedId; });
         if (!stillThere) {
-          if (state.notes.length) selectNote(state.notes[0].id, { read: !state.note });
+          if (state.notes.length) return selectNote(state.notes[0].id, { read: !state.note, boot: opts.boot }).then(function () { ensureFilled(); });
           else { state.selectedId = null; state.note = null; renderEditor(); }
         }
       }
@@ -593,6 +594,7 @@ export function startWorkspace() {
     }).catch(function (err) {
       state.loading = false;
       toast(err.message);
+      if (opts.boot) throw err;
     });
   }
 
@@ -644,10 +646,10 @@ export function startWorkspace() {
     if (boot) bootStep(36, tr('正在加载分类与标签…'));
     var tasks = [
       loadMeta().then(function () { if (boot) bootStep(52, tr('分类与标签已就绪')); }),
-      loadNotes(opts).then(function () { if (boot) bootStep(76, tr('笔记已加载')); }),
-      loadStats().then(function () { if (boot) bootStep(90, tr('正在整理统计…')); })
+      loadNotes(opts).then(function () { if (boot) bootStep(76, tr('笔记已加载')); })
     ];
-    return Promise.all(tasks).catch(function () {});
+    if (!boot) tasks.push(loadStats());
+    return Promise.all(tasks);
   }
 
   /* ------------------------------------------------------------- library */
@@ -873,6 +875,7 @@ export function startWorkspace() {
       renderLibrary();
     }).catch(function (err) {
       toast(err.message);
+      if (opts && opts.boot) throw err;
     });
   }
 
@@ -2506,13 +2509,17 @@ export function startWorkspace() {
     }).then(function () {
       return refreshAll({ boot: true });
     }).then(function () {
+      window.LNStartup && window.LNStartup.mark('frontend.workspace.data');
       renderSettingsInfo();
       var params = new URLSearchParams(location.search);
       var noteId = params.get('note');
       // 懒加载后首屏只有前几十篇，不能再靠「是否已在列表里」判断深链是否存在。
-      if (noteId) selectNote(noteId);
+      if (noteId) return selectNote(noteId, { boot: true });
+    }).then(function () {
       connectEvents();
       finishBoot();
+      requestAnimationFrame(function () { window.LNStartup && window.LNStartup.mark('frontend.first.interactive'); });
+      setTimeout(function () { loadStats(); }, 0);
       pluginEvent('workspace:ready', {});
     }).catch(function (err) {
       finishBoot();
