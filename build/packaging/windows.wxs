@@ -19,16 +19,18 @@
           <Component Id="Application" Guid="9EC1933A-1D2D-49E1-8090-CDA50CCCD9FD" Win64="yes">
             <File Id="ApplicationExe" Source="$(var.Binary)" Name="$(var.AppExe)" KeyPath="yes" />
           </Component>
-          <Component Id="StartMenuEntry" Guid="3477506E-1E80-4C49-8826-C7F2E30216F0" Win64="yes">
-            <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Locknote AI" Target="[INSTALLFOLDER]$(var.AppExe)" WorkingDirectory="INSTALLFOLDER" Advertise="no" />
-            <RegistryValue Root="HKMU" Key="Software\Locknote AI\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
-          </Component>
           <Component Id="License" Guid="58E02BF9-E410-4615-9C48-800394130DEA" Win64="yes">
             <File Source="LICENSE" KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
-      <Directory Id="ProgramMenuFolder" />
+      <Directory Id="ProgramMenuFolder">
+        <!-- Non-advertised shortcuts require a user registry KeyPath (ICE43/ICE57). -->
+        <Component Id="StartMenuEntry" Guid="3477506E-1E80-4C49-8826-C7F2E30216F0" Win64="yes">
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Locknote AI" Target="[INSTALLFOLDER]$(var.AppExe)" WorkingDirectory="INSTALLFOLDER" Advertise="no" />
+          <RegistryValue Root="HKCU" Key="Software\Locknote AI\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      </Directory>
     </Directory>
     <Feature Id="MainFeature" Title="Locknote AI" Level="1">
       <ComponentRef Id="Application" />

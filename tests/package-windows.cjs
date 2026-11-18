@@ -7,8 +7,18 @@ test('Windows probes retain real registry separators and MSI shortcut ownership'
  const wix=read('build/packaging/windows.wxs');
  assert.ok(wix.includes('KeyPath="yes" />'));
  assert.ok(!wix.includes('</File>'));
- assert.ok(wix.includes('Root="HKMU"'));
  assert.ok(wix.includes('ComponentRef Id="StartMenuEntry"'));
+});
+test('MSI non-advertised shortcut uses a user registry keypath in the menu component',()=>{
+ const wix=read('build/packaging/windows.wxs');
+ const menu=wix.split('<Directory Id="ProgramMenuFolder">')[1]?.split('</Directory>')[0];
+ assert.ok(menu,'Start Menu component must belong to ProgramMenuFolder, not INSTALLFOLDER');
+ assert.match(menu,/<Component Id="StartMenuEntry"/);
+ assert.match(menu,/<RegistryValue[^>]*Root="HKCU"[^>]*KeyPath="yes"/);
+ assert.ok(!menu.includes('<File '),'Do not mix machine files with the shortcut keypath');
+ assert.ok(!wix.includes('Root="HKMU"'),'An ambiguous registry root causes ICE57');
+ const pack=read('scripts/package-windows.ps1');
+ assert.ok(!pack.includes('-sval') && !pack.includes('-sice'),'Keep MSI ICE validation enabled');
 });
 test('Windows packaging keeps one executable name',()=>{
  const config=JSON.parse(read('wails.json'));assert.equal(config.name,'locknote-ai');assert.equal(config.outputfilename,'locknote-ai');
